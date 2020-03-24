@@ -200,3 +200,55 @@ export class GoogleSignInResult {
     GrantedScopes: Array<GoogleSignInScope>;
     RequestedScopes: Array<GoogleSignInScope>;
 }
+
+export interface FacebookLoginOptions {
+    // The permissions to request. If you don't add this param, we will request public_profile and email for you.
+    Scopes?: Array<string>;
+
+    /**
+     * Whether you want to force account selection. If you enable this option we will logout the user for you in the app.
+     */
+    ForceAccountSelection?: boolean;
+
+    /**
+     * Whether to request profile data. If you don't enable this, you will only get an ID and a token. Perfect for serverside handling.
+     * If you do enable this, we use the requested token on the Graph API to request the user profile.
+     */
+    RequestProfileData?: boolean;
+
+    // The fields to fetch when requesting the profile data.
+    // When not set, we get the following fields: id,name,first_name,last_name,picture.type(large),email.
+    // Some fields might return a json serialized string, like the picture field.
+    ProfileDataFields?: Array<string>;
+}
+
+export enum FacebookLoginResultType {
+    // When the login failed.
+    FAILED,
+
+    // When the user canceled.
+    CANCELED,
+
+    // When the login was success.
+    SUCCESS,
+}
+
+export class FacebookLoginResult {
+    ResultType: FacebookLoginResultType;
+
+    // Failed fields.
+    // 0 = Plugin err, 1 = Login Exception, 2 = Profile data exception.
+    ErrorCode: number;
+    ErrorMessage: string;
+    ProfileDataErrorCode: number;
+    ProfileDataErrorMessage: string;
+    ProfileDataUserErrorMessage: string;
+
+    DeniedScopes: Array<string>;
+    GrantedScopes: Array<string>;
+
+    // Success fields.
+    Id: string;
+    AccessToken: string;
+    ProfileDataFields: Map<string, string>;
+}

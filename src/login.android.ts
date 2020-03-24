@@ -3,14 +3,14 @@ import {
     GoogleSignInResult,
     GoogleSignInType,
     GoogleSignInScope,
-    GoogleSignInResultType
+    GoogleSignInResultType, FacebookLoginOptions, FacebookLoginResult, FacebookLoginResultType
 } from "./login.common";
 export {
     GoogleSignInOptions,
     GoogleSignInResult,
     GoogleSignInType,
     GoogleSignInScope,
-    GoogleSignInResultType
+    GoogleSignInResultType, FacebookLoginOptions, FacebookLoginResult
 } from "./login.common";
 
 import {
@@ -89,6 +89,8 @@ function GoogleSignInScopeToAndroidScope(scope: GoogleSignInScope): com.google.a
             return new com.google.android.gms.common.api.Scope(com.google.android.gms.common.Scopes.PROFILE);
         }
     }
+
+    return null;
 }
 
 function AndroidScopeToGoogleSignInScope(scope: com.google.android.gms.common.api.Scope): GoogleSignInScope {
@@ -227,7 +229,10 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
                         return;
                     }
 
-                    extraScopes.push(GoogleSignInScopeToAndroidScope(scope));
+                    const googleSignInScope = GoogleSignInScopeToAndroidScope(scope);
+                    if (googleSignInScope) {
+                        extraScopes.push(googleSignInScope);
+                    }
                 });
             }
 
@@ -273,7 +278,10 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
                             const requestedScopesSize = requestedScopes.size();
                             const requestedScopesArray = requestedScopes.toArray();
                             for (let i = 0; i < requestedScopesSize; i++) {
-                                result.RequestedScopes.push(AndroidScopeToGoogleSignInScope(requestedScopesArray[i]));
+                                const SignInScope = AndroidScopeToGoogleSignInScope(requestedScopesArray[i]);
+                                if (SignInScope) {
+                                    result.RequestedScopes.push(SignInScope);
+                                }
                             }
                         }
 
@@ -282,7 +290,10 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
                             const grantedScopesSize = grantedScopes.size();
                             const grantedScopesArray = grantedScopes.toArray();
                             for (let i = 0; i < grantedScopesSize; i++) {
-                                result.GrantedScopes.push(AndroidScopeToGoogleSignInScope(grantedScopesArray[i]));
+                                const SignInScope = AndroidScopeToGoogleSignInScope(grantedScopesArray[i]);
+                                if (SignInScope) {
+                                    result.GrantedScopes.push(SignInScope);
+                                }
                             }
                         }
 
@@ -297,7 +308,6 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
                             result.ErrorCode = apiErorr.getStatusCode();
                             result.ErrorMessage = apiErorr.getMessage();
                         } else {
-                            // @ts-ignore
                             result.ErrorCode = 0;
                             result.ErrorMessage = "Plugin error: " + e;
                         }
@@ -321,6 +331,157 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
             }));
         } else {
             startSignIn();
+        }
+    });
+}
+
+export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): Promise<FacebookLoginResult> {
+    return new Promise<FacebookLoginResult>((resolve, reject) => {
+        let loginManager;
+        let callbackManager;
+
+        try {
+            loginManager = com.facebook.login.LoginManager.getInstance();
+            callbackManager = com.facebook.CallbackManager.Factory.create();
+
+            if (facebookLoginOptions.ForceAccountSelection) {
+                loginManager.logOut();
+            }
+
+            const callback = new com.facebook.FacebookCallback({
+                onCancel(): void {
+                    loginManager.unregisterCallback(callbackManager);
+
+                    const result = new FacebookLoginResult();
+                    result.ResultType = FacebookLoginResultType.CANCELED;
+                    resolve(result);
+                },
+                onError(error: com.facebook.FacebookException): void {
+                    loginManager.unregisterCallback(callbackManager);
+
+                    const result = new FacebookLoginResult();
+                    result.ResultType = FacebookLoginResultType.FAILED;
+                    result.ErrorCode = 1;
+                    result.ErrorMessage = "Facebook Exception: " + error.toString();
+                    resolve(result);
+                },
+                onSuccess(loginResult: com.facebook.login.LoginResult): void {
+                    loginManager.unregisterCallback(callbackManager);
+
+                    const result = new FacebookLoginResult();
+                    const accessToken = loginResult.getAccessToken();
+                    if (!accessToken) {
+                        result.ResultType = FacebookLoginResultType.FAILED;
+                        result.ErrorCode = 0;
+                        result.ErrorMessage = "No access token returned";
+                        resolve(result);
+                        return;
+                    }
+
+                    result.ResultType = FacebookLoginResultType.SUCCESS;
+                    result.DeniedScopes = new Array<string>();
+                    result.GrantedScopes = new Array<string>();
+
+                    const deniedScopes = loginResult.getRecentlyDeniedPermissions();
+                    if (deniedScopes && deniedScopes.size() > 0) {
+                        const deniedScopesSize = deniedScopes.size();
+                        const deniedScopesArray = deniedScopes.toArray();
+                        for (let i = 0; i < deniedScopesSize; i++) {
+                            result.DeniedScopes.push(deniedScopesArray[i].toString());
+                        }
+                    }
+
+                    const grantedScopes = loginResult.getRecentlyGrantedPermissions();
+                    if (grantedScopes && grantedScopes.size() > 0) {
+                        const grantedScopesSize = grantedScopes.size();
+                        const grantedScopesArray = grantedScopes.toArray();
+                        for (let i = 0; i < grantedScopesSize; i++) {
+                            result.GrantedScopes.push(grantedScopesArray[i].toString());
+                        }
+                    }
+
+                    result.AccessToken = accessToken.getToken();
+                    result.Id = accessToken.getUserId();
+
+                    if (facebookLoginOptions.RequestProfileData) {
+                        const request = com.facebook.GraphRequest.newMeRequest(accessToken, new com.facebook.GraphRequest.GraphJSONObjectCallback({
+                            onCompleted: (obj, resp) => {
+                                if (resp.getError()) {
+                                    const error = resp.getError();
+                                    result.ResultType = FacebookLoginResultType.FAILED;
+                                    result.ErrorCode = 2;
+                                    result.ErrorMessage = "Error while fetching user profile";
+                                    result.ProfileDataErrorCode = error.getErrorCode();
+                                    result.ProfileDataErrorMessage = error.getErrorMessage();
+                                    result.ProfileDataUserErrorMessage = error.getErrorUserMessage();
+                                    return;
+                                }
+
+                                result.ProfileDataFields = new Map<string, string>();
+
+                                const objectKeysLength = obj.names().length();
+                                for (let i = 0; i < objectKeysLength; i++) {
+                                    const keyName = obj.names().getString(i);
+                                    result.ProfileDataFields[keyName] = obj.get(keyName).toString();
+                                }
+
+                                resolve(result);
+                            }
+                        }));
+
+                        let profileFields = ["id", "name", "first_name", "last_name", "picture.type(large)", "email"];
+                        if (facebookLoginOptions.ProfileDataFields && facebookLoginOptions.ProfileDataFields.length > 0) {
+                            profileFields = facebookLoginOptions.ProfileDataFields;
+                        }
+                        const params = new android.os.Bundle();
+                        params.putString(
+                            "fields",
+                            profileFields.join(",")
+                        );
+
+                        request.setParameters(params);
+                        request.executeAsync();
+                    } else {
+                        resolve(result);
+                    }
+                }
+            });
+
+            loginManager.registerCallback(callbackManager, callback);
+
+            let scopes: Array<string> = ["public_profile", "email"];
+            if (facebookLoginOptions.Scopes) {
+                scopes = facebookLoginOptions.Scopes;
+            }
+
+            const RC_LOG_IN = 64206;
+            const onActivityResult = ({
+                                          requestCode,
+                                          resultCode,
+                                          intent
+                                      }: AndroidActivityResultEventData) => {
+                if (requestCode === RC_LOG_IN) {
+                    Android.off(AndroidApplication.activityResultEvent, onActivityResult);
+                    callbackManager.onActivityResult(requestCode, resultCode, intent);
+                }
+            };
+
+            Android.on(AndroidApplication.activityResultEvent, onActivityResult);
+
+            loginManager.logInWithReadPermissions(
+                Android.foregroundActivity,
+                java.util.Arrays.asList(scopes)
+            );
+        } catch (e) {
+            // Make sure to remove callback.
+            if (loginManager && callbackManager) {
+                loginManager.unregisterCallback(callbackManager);
+            }
+            const result = new FacebookLoginResult();
+            result.ResultType = FacebookLoginResultType.FAILED;
+            result.ErrorCode = 0;
+            result.ErrorMessage = "Plugin error: " + e;
+            resolve(result);
         }
     });
 }

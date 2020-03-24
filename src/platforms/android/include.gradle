@@ -6,8 +6,10 @@ android {
 
 repositories {
     google()
+    jcenter()
 }
 
 dependencies {
     implementation 'com.google.android.gms:play-services-auth:17.0.0'
+    implementation 'com.facebook.android:facebook-login:6.2.0'
 }
