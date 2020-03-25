@@ -188,6 +188,10 @@ export class GoogleSignInResult {
     ErrorCode: number;
     ErrorMessage: string;
 
+    // With these fields you can validate whether the user gave permission for all requested scopes.
+    GrantedScopes: Array<GoogleSignInScope>;
+    RequestedScopes: Array<GoogleSignInScope>;
+
     // Success fields.
     GivenName: string;
     Id: string;
@@ -197,12 +201,12 @@ export class GoogleSignInResult {
     PhotoUrl: string;
     Email: string;
     ServerAuthCode: string;
-    GrantedScopes: Array<GoogleSignInScope>;
-    RequestedScopes: Array<GoogleSignInScope>;
 }
 
 export interface FacebookLoginOptions {
-    // The permissions to request. If you don't add this param, we will request public_profile and email for you.
+    /**
+     * The permissions to request. If you don't add this param, we will request public_profile and email for you.
+     */
     Scopes?: Array<string>;
 
     /**
@@ -211,14 +215,16 @@ export interface FacebookLoginOptions {
     ForceAccountSelection?: boolean;
 
     /**
-     * Whether to request profile data. If you don't enable this, you will only get an ID and a token. Perfect for serverside handling.
+     * Whether to request profile data. If you don't enable this, you will only get an ID and a token. Perfect for server side handling.
      * If you do enable this, we use the requested token on the Graph API to request the user profile.
      */
     RequestProfileData?: boolean;
 
-    // The fields to fetch when requesting the profile data.
-    // When not set, we get the following fields: id,name,first_name,last_name,picture.type(large),email.
-    // Some fields might return a json serialized string, like the picture field.
+    /**
+     * The fields to fetch when requesting the profile data.
+     * When not set, we get the following fields: id,name,first_name,last_name,picture.type(large),email.
+     * Some fields might return a json serialized string, like the picture field.
+     */
     ProfileDataFields?: Array<string>;
 }
 
@@ -244,6 +250,7 @@ export class FacebookLoginResult {
     ProfileDataErrorMessage: string;
     ProfileDataUserErrorMessage: string;
 
+    // With these fields you can validate whether the user gave permission for all requested scopes.
     DeniedScopes: Array<string>;
     GrantedScopes: Array<string>;
 

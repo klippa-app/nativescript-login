@@ -179,6 +179,10 @@ function AndroidScopeToGoogleSignInScope(scope: com.google.android.gms.common.ap
     return null;
 }
 
+export function wireInGoogleSignIn(clientID: string) {
+    // This function doesn't do anything on Android, SDK takes care of everything.
+}
+
 export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Promise<GoogleSignInResult> {
     return new Promise<GoogleSignInResult>((resolve, reject) => {
         if (googleSignInOptions.LoginType === GoogleSignInType.ServerAuthCode && (!googleSignInOptions.ServerClientId || googleSignInOptions.ServerClientId === "")) {
@@ -333,6 +337,10 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
             startSignIn();
         }
     });
+}
+
+export function wireInFacebookLogin() {
+    // This function doesn't do anything on Android, SDK takes care of everything.
 }
 
 export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): Promise<FacebookLoginResult> {

@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">Klippa Login Angular Demo</string>
     <string name="title_activity_kimera">Klippa Login Angular Demo</string>
-    <string name="facebook_app_id">504004729759373</string>
-    <string name="fb_login_protocol_scheme">fb504004729759373</string>
+    <string name="facebook_app_id">577892569738501</string>
+    <string name="fb_login_protocol_scheme">fb577892569738501</string>
 </resources>
