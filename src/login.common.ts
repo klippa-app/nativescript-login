@@ -125,6 +125,7 @@ export interface GoogleSignInOptions {
      * The first time you retrieve a code, a refresh_token will be granted automatically.
      * Subsequent requests will require additional user consent.
      * Use false by default; only use true if your server has suffered some failure and lost the user's refresh token.
+     * Only has effect on Android.
      */
     ForceCodeForRefreshToken?: boolean;
 
@@ -137,21 +138,25 @@ export interface GoogleSignInOptions {
     /**
      * Specifies an account name on the device that should be used. If this is never called, the client will use the current default account for this application.
      * The account name on the device that should be used to sign in.
+     * Only has effect on Android.
      */
     AccountName?: string;
 
     /**
      * Specifies that an ID token for authenticated users is requested. Requesting an ID token requires that the server client ID be specified.
+     * iOS always return the user ID Token.
      */
     RequestIdToken?: boolean;
 
     /**
      * Specifies that user ID is requested by your application.
+     * For iOS you can't control this, ID is always returned.
      */
     RequestId?: boolean;
 
     /**
      * Specifies that email info is requested by your application. Note that we don't recommend keying user by email address since email address might change. Keying user by ID is the preferable approach.
+     * For iOS you can't control this, use RequestProfile if you want the email.
      */
     RequestEmail?: boolean;
 
@@ -184,12 +189,15 @@ export class GoogleSignInResult {
     ResultType: GoogleSignInResultType;
 
     // Failed fields.
-    // You can find some common errors here: https://developers.google.com/android/reference/com/google/android/gms/common/api/CommonStatusCodes.
+    // You can find some common errors here for Android: https://developers.google.com/android/reference/com/google/android/gms/common/api/CommonStatusCodes.
+    // See here for iOS: https://developers.google.com/identity/sign-in/ios/reference/Enums/GIDSignInErrorCode.
     ErrorCode: number;
     ErrorMessage: string;
 
     // With these fields you can validate whether the user gave permission for all requested scopes.
     GrantedScopes: Array<GoogleSignInScope>;
+
+    // This is only filled in by the iOS SDK.
     RequestedScopes: Array<GoogleSignInScope>;
 
     // Success fields.
@@ -244,6 +252,7 @@ export class FacebookLoginResult {
 
     // Failed fields.
     // 0 = Plugin err, 1 = Login Exception, 2 = Profile data exception.
+    // On iOS de ErrorCode is the NSError code.
     ErrorCode: number;
     ErrorMessage: string;
     ProfileDataErrorCode: number;

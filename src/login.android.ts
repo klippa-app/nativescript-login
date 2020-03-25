@@ -10,7 +10,7 @@ export {
     GoogleSignInResult,
     GoogleSignInType,
     GoogleSignInScope,
-    GoogleSignInResultType, FacebookLoginOptions, FacebookLoginResult
+    GoogleSignInResultType, FacebookLoginOptions, FacebookLoginResult, FacebookLoginResultType
 } from "./login.common";
 
 import {
@@ -458,7 +458,7 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
             loginManager.registerCallback(callbackManager, callback);
 
             let scopes: Array<string> = ["public_profile", "email"];
-            if (facebookLoginOptions.Scopes) {
+            if (facebookLoginOptions.Scopes && facebookLoginOptions.Scopes.length > 0) {
                 scopes = facebookLoginOptions.Scopes;
             }
 
