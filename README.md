@@ -162,18 +162,18 @@ startFacebookLogin(loginOptions).then((result) => {
 * Open the credentials.plist and copy the value between `<string>` and `</string>` below `<key>REVERSED_CLIENT_ID</key>`.
 * Open `App_Resources/iOS/Info.plist` and add the following, replace `{{REVERSED_CLIENT_ID}}` with the value you copied:
 ```xml
-	<key>CFBundleURLTypes</key>
-    <array>
-        <!-- If you already have a CFBundleURLTypes key, only add the dict section to the array -->
-    	<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>{{REVERSED_CLIENT_ID}}</string>
-			</array>
-		</dict>
-    </array>
+<key>CFBundleURLTypes</key>
+<array>
+    <!-- If you already have a CFBundleURLTypes key, only add the dict section to the array -->
+    <dict>
+        <key>CFBundleTypeRole</key>
+        <string>Editor</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <string>{{REVERSED_CLIENT_ID}}</string>
+        </array>
+    </dict>
+</array>
 ```
 
 #### NativeScript integration
