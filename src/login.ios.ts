@@ -25,6 +25,32 @@ interface GoogleEventData {
     Error: NSError;
 }
 
+@ObjCClass(UIApplicationDelegate)
+class NativeScriptLoginUIApplicationDelegateImpl extends UIResponder implements UIApplicationDelegate {
+    static ObjCProtocols = [UIApplicationDelegate];
+}
+
+@ObjCClass(GIDSignInDelegate)
+class NativeScriptLoginGoogleDelegate extends NSObject implements GIDSignInDelegate {
+    static ObjCProtocols = [GIDSignInDelegate];
+
+    signInDidDisconnectWithUserWithError(signIn: GIDSignIn, user: GIDGoogleUser, error: NSError) {
+        googleDidDisconnect.next({
+            SignIn: signIn,
+            User: user,
+            Error: error,
+        });
+    }
+
+    signInDidSignInForUserWithError(signIn: GIDSignIn, user: GIDGoogleUser, error: NSError) {
+        googleDidSignIn.next({
+            SignIn: signIn,
+            User: user,
+            Error: error,
+        });
+    }
+}
+
 export function wireInGoogleSignIn(clientID: string) {
     let oldApplicationDidFinishLaunchingWithOptions;
     let oldApplicationOpenURLOptions;
@@ -32,31 +58,8 @@ export function wireInGoogleSignIn(clientID: string) {
     // Play nice with other plugins by not completely ignoring anything already added to the appdelegate
     if (Application.ios.delegate === undefined) {
         // We don't have a delegate yet, create one
-
-        @ObjCClass(UIApplicationDelegate)
-        class NativeScriptLoginGoogleUIApplicationDelegateImpl extends UIResponder implements UIApplicationDelegate, GIDSignInDelegate {
-            static ObjCProtocols = [UIApplicationDelegate, GIDSignInDelegate];
-
-            signInDidDisconnectWithUserWithError(signIn: any, user: any, error: any) {
-                // Empty implementation.
-                // We override this later.
-            }
-
-            signInDidSignInForUserWithError(signIn: any, user: any, error: any) {
-                // Empty implementation.
-                // We override this later.
-            }
-        }
-
-        Application.ios.delegate = NativeScriptLoginGoogleUIApplicationDelegateImpl;
+        Application.ios.delegate = NativeScriptLoginUIApplicationDelegateImpl;
     } else {
-        // Make sure we let NativeScript know we implement the GIDSignInDelegate.
-        if (Application.ios.delegate.prototype.ObjCProtocols) {
-            Application.ios.delegate.prototype.ObjCProtocols.push(GIDSignInDelegate);
-        } else {
-            Application.ios.delegate.prototype.ObjCProtocols = [UIApplicationDelegate, GIDSignInDelegate];
-        }
-
         // We already have a delegate, save the callbacks so we can call it later on.
         if (Application.ios.delegate.prototype.applicationDidFinishLaunchingWithOptions) {
             oldApplicationDidFinishLaunchingWithOptions = Application.ios.delegate.prototype.applicationDidFinishLaunchingWithOptions;
@@ -73,7 +76,7 @@ export function wireInGoogleSignIn(clientID: string) {
 
         try {
             GIDSignIn.sharedInstance().clientID = clientID;
-            GIDSignIn.sharedInstance().delegate = Application.ios.delegate;
+            GIDSignIn.sharedInstance().delegate = new NativeScriptLoginGoogleDelegate();
             addedGIDSignInDelegate = true;
         } catch (error) {
             console.log(error);
@@ -103,22 +106,6 @@ export function wireInGoogleSignIn(clientID: string) {
         }
 
         return handledGIDSignIn || oldCallback;
-    };
-
-    Application.ios.delegate.prototype.signInDidDisconnectWithUserWithError = (signIn: any, user: any, error: any) => {
-        googleDidDisconnect.next({
-            SignIn: signIn,
-            User: user,
-            Error: error,
-        });
-    };
-
-    Application.ios.delegate.prototype.signInDidSignInForUserWithError = (signIn: any, user: any, error: any) => {
-        googleDidSignIn.next({
-            SignIn: signIn,
-            User: user,
-            Error: error,
-        });
     };
 }
 
@@ -423,13 +410,7 @@ export function wireInFacebookLogin() {
     // Play nice with other plugins by not completely ignoring anything already added to the appdelegate
     if (Application.ios.delegate === undefined) {
         // We don't have a delegate yet, create one
-
-        @ObjCClass(UIApplicationDelegate)
-        class NativeScriptLoginFacebookUIApplicationDelegateImpl extends UIResponder implements UIApplicationDelegate {
-            static ObjCProtocols = [UIApplicationDelegate];
-        }
-
-        Application.ios.delegate = NativeScriptLoginFacebookUIApplicationDelegateImpl;
+        Application.ios.delegate = NativeScriptLoginUIApplicationDelegateImpl;
     } else {
         // We already have a delegate, save the callbacks so we can call it later on.
         if (Application.ios.delegate.prototype.applicationDidFinishLaunchingWithOptions) {
