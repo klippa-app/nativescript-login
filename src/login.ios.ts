@@ -318,7 +318,7 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
             }
 
             const scopes = new NSMutableArray({
-                capacity: (googleSignInOptions.ExtraScopes.length ? googleSignInOptions.ExtraScopes.length : 0),
+                capacity: (googleSignInOptions.ExtraScopes && googleSignInOptions.ExtraScopes.length ? googleSignInOptions.ExtraScopes.length : 0),
             });
             if (googleSignInOptions.ExtraScopes && googleSignInOptions.ExtraScopes.length > 0) {
                 if (googleSignInOptions.ExtraScopes.length > 1) {
