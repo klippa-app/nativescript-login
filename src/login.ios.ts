@@ -334,8 +334,20 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
             GIDSignIn.sharedInstance().scopes = scopes;
 
             googleDidDisconnectSubscription = googleDidDisconnect.subscribe((signInDetails) => {
-                console.log("User disconnected, when is this called?", signInDetails);
                 cleanupSubscriptions();
+                if (signInDetails.Error) {
+                    const result = new GoogleSignInResult();
+                    result.ErrorCode = signInDetails.Error.code;
+                    result.ErrorMessage = signInDetails.Error.localizedDescription;
+                    resolve(result);
+                    return;
+                }
+
+                const result = new GoogleSignInResult();
+                result.ErrorCode = 0;
+                result.ErrorMessage = "User disconnected";
+                resolve(result);
+                return;
             });
 
             // Does this trigger googleDidDisconnect?
@@ -389,7 +401,6 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
                     }
                 }
 
-                cleanupSubscriptions();
                 resolve(result);
             });
 
