@@ -193,6 +193,10 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
             reject("Missing ServerClientId while RequestIdToken is true");
         }
 
+        if (googleSignInOptions.RequestProfile === null || typeof(googleSignInOptions.RequestProfile) === "undefined") {
+            googleSignInOptions.RequestProfile = true;
+        }
+
         const gsoBuilder = new com.google.android.gms.auth.api.signin.GoogleSignInOptions.Builder(com.google.android.gms.auth.api.signin.GoogleSignInOptions.DEFAULT_SIGN_IN);
 
         if (googleSignInOptions.LoginType === GoogleSignInType.ServerAuthCode) {
@@ -213,6 +217,10 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
 
         if (googleSignInOptions.RequestEmail) {
             gsoBuilder.requestEmail();
+        }
+
+        if (googleSignInOptions.RequestProfile) {
+            gsoBuilder.requestProfile();
         }
 
         if (googleSignInOptions.HostedDomain) {

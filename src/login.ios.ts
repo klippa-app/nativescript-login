@@ -37,12 +37,12 @@ export function wireInGoogleSignIn(clientID: string) {
         class NativeScriptLoginGoogleUIApplicationDelegateImpl extends UIResponder implements UIApplicationDelegate, GIDSignInDelegate {
             static ObjCProtocols = [UIApplicationDelegate, GIDSignInDelegate];
 
-            signInDidDisconnectWithUserWithError(signIn: GIDSignIn, user: GIDGoogleUser, error: NSError) {
+            signInDidDisconnectWithUserWithError(signIn: any, user: any, error: any) {
                 // Empty implementation.
                 // We override this later.
             }
 
-            signInDidSignInForUserWithError(signIn: GIDSignIn, user: GIDGoogleUser, error: NSError) {
+            signInDidSignInForUserWithError(signIn: any, user: any, error: any) {
                 // Empty implementation.
                 // We override this later.
             }
@@ -105,7 +105,7 @@ export function wireInGoogleSignIn(clientID: string) {
         return handledGIDSignIn || oldCallback;
     };
 
-    Application.ios.delegate.prototype.signInDidDisconnectWithUserWithError = (signIn: GIDSignIn, user: GIDGoogleUser, error: NSError) => {
+    Application.ios.delegate.prototype.signInDidDisconnectWithUserWithError = (signIn: any, user: any, error: any) => {
         googleDidDisconnect.next({
             SignIn: signIn,
             User: user,
@@ -113,7 +113,7 @@ export function wireInGoogleSignIn(clientID: string) {
         });
     };
 
-    Application.ios.delegate.prototype.signInDidSignInForUserWithError = (signIn: GIDSignIn, user: GIDGoogleUser, error: NSError) => {
+    Application.ios.delegate.prototype.signInDidSignInForUserWithError = (signIn: any, user: any, error: any) => {
         googleDidSignIn.next({
             SignIn: signIn,
             User: user,
@@ -302,6 +302,14 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
                 reject("Missing ServerClientId while LoginType is ServerAuthCode");
             }
 
+            if (googleSignInOptions.RequestProfile === null || typeof(googleSignInOptions.RequestProfile) === "undefined") {
+                googleSignInOptions.RequestProfile = true;
+            }
+
+            if (!googleSignInOptions.RequestProfile && (!googleSignInOptions.ExtraScopes || googleSignInOptions.ExtraScopes.length === 0)) {
+                reject("Google on iOS requires either RequestProfile to be true or ExtraScopes to be set");
+            }
+
             if (googleSignInOptions.LoginType === GoogleSignInType.ServerAuthCode) {
                 GIDSignIn.sharedInstance().serverClientID = googleSignInOptions.ServerClientId;
             } else {
@@ -396,7 +404,7 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
                 resolve(result);
             });
 
-            GIDSignIn.sharedInstance().presentingViewController = UIApplication.sharedApplication.keyWindow.rootViewController;
+            GIDSignIn.sharedInstance().presentingViewController = Application.ios.rootController;
             GIDSignIn.sharedInstance().signIn();
         } catch (e) {
             const result = new GoogleSignInResult();
@@ -479,7 +487,7 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
             }
 
             const loginManager = FBSDKLoginManager.alloc().init();
-            loginManager.logInWithPermissionsFromViewControllerHandler(scopes, UIApplication.sharedApplication.keyWindow.rootViewController, (result: FBSDKLoginManagerLoginResult, error: NSError) => {
+            loginManager.logInWithPermissionsFromViewControllerHandler(scopes, Application.ios.rootController, (result: FBSDKLoginManagerLoginResult, error: NSError) => {
                 const loginResult = new FacebookLoginResult();
                 if (result.isCancelled) {
                     loginResult.ResultType = FacebookLoginResultType.CANCELED;

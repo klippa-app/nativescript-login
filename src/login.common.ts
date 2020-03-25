@@ -162,6 +162,8 @@ export interface GoogleSignInOptions {
 
     /**
      * Specifies that user's profile info is requested by your application.
+     * Default: true
+     * On iOS you have to either set RequestProfile or give custom scopes.
      */
     RequestProfile?: boolean;
 

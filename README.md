@@ -181,7 +181,9 @@ startFacebookLogin(loginOptions).then((result) => {
 **Only required for iOS:**
 
 Normal NativeScript:
+
 Edit `app/app.ts`:
+
 ```typescript
 import {wireInGoogleSignIn} from "@klippa/nativescript-login";
 
@@ -195,7 +197,9 @@ app.run({ moduleName: "app-root" });
 ```
 
 NativeScript Angular:
+
 Edit `src/main.ts`:
+
 ```typescript
 
 // Other imports.
@@ -235,6 +239,8 @@ startGoogleSignIn(signInOptions).then((result) => {
 ```
 
 ## API
+**GoogleSignInOptions**:
+
 
 ## Roadmap
 * Sign in with Apple
