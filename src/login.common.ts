@@ -111,7 +111,7 @@ export interface GoogleSignInOptions {
     /**
      * The type of sign in.
      */
-    LoginType: GoogleSignInType;
+    SignInType: GoogleSignInType;
 
     /**
      * Required when using login type is ServerAuthCode, or when RequestIdToken is true.
@@ -169,7 +169,7 @@ export interface GoogleSignInOptions {
 
     /**
      * Specifies OAuth 2.0 scopes your application requests.
-     * Normally you will not need this and.
+     * Normally you will not need this.
      */
     ExtraScopes?: Array<GoogleSignInScope>;
 
@@ -199,7 +199,7 @@ export class GoogleSignInResult {
     // With these fields you can validate whether the user gave permission for all requested scopes.
     GrantedScopes: Array<GoogleSignInScope>;
 
-    // This is only filled in by the iOS SDK.
+    // This is only filled in by the Android SDK.
     RequestedScopes: Array<GoogleSignInScope>;
 
     // Success fields.

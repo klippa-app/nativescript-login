@@ -185,8 +185,8 @@ export function wireInGoogleSignIn(clientID: string) {
 
 export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Promise<GoogleSignInResult> {
     return new Promise<GoogleSignInResult>((resolve, reject) => {
-        if (googleSignInOptions.LoginType === GoogleSignInType.ServerAuthCode && (!googleSignInOptions.ServerClientId || googleSignInOptions.ServerClientId === "")) {
-            reject("Missing ServerClientId while LoginType is ServerAuthCode");
+        if (googleSignInOptions.SignInType === GoogleSignInType.ServerAuthCode && (!googleSignInOptions.ServerClientId || googleSignInOptions.ServerClientId === "")) {
+            reject("Missing ServerClientId while SignInType is ServerAuthCode");
         }
 
         if (googleSignInOptions.RequestIdToken && (!googleSignInOptions.ServerClientId || googleSignInOptions.ServerClientId === "")) {
@@ -199,7 +199,7 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
 
         const gsoBuilder = new com.google.android.gms.auth.api.signin.GoogleSignInOptions.Builder(com.google.android.gms.auth.api.signin.GoogleSignInOptions.DEFAULT_SIGN_IN);
 
-        if (googleSignInOptions.LoginType === GoogleSignInType.ServerAuthCode) {
+        if (googleSignInOptions.SignInType === GoogleSignInType.ServerAuthCode) {
             if (googleSignInOptions.ForceCodeForRefreshToken) {
                 gsoBuilder.requestServerAuthCode(googleSignInOptions.ServerClientId, googleSignInOptions.ForceCodeForRefreshToken);
             } else {

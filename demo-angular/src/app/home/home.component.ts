@@ -1,5 +1,5 @@
 import {Component, OnInit} from "@angular/core";
-import {GoogleSignInOptions, GoogleSignInType, startGoogleSignIn, GoogleSignInScope, startFacebookLogin, FacebookLoginOptions} from "@klippa/nativescript-login";
+import {GoogleSignInOptions, GoogleSignInType, startGoogleSignIn, startFacebookLogin, FacebookLoginOptions} from "@klippa/nativescript-login";
 
 @Component({
     selector: "Home",
@@ -15,14 +15,9 @@ export class HomeComponent implements OnInit {
     }
 
     googleLogin() {
-        const extraScopes = new Array<GoogleSignInScope>();
-        extraScopes.push(GoogleSignInScope.DRIVE_APPFOLDER);
-
         const signInOptions: GoogleSignInOptions = {
-            LoginType: GoogleSignInType.Local,
-            ForceAccountSelection: true,
-            RequestEmail: true,
-            ExtraScopes: extraScopes,
+            SignInType: GoogleSignInType.Local,
+            ForceAccountSelection: true
         };
 
         startGoogleSignIn(signInOptions).then((result) => {

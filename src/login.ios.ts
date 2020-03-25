@@ -285,8 +285,8 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
         };
 
         try {
-            if (googleSignInOptions.LoginType === GoogleSignInType.ServerAuthCode && (!googleSignInOptions.ServerClientId || googleSignInOptions.ServerClientId === "")) {
-                reject("Missing ServerClientId while LoginType is ServerAuthCode");
+            if (googleSignInOptions.SignInType === GoogleSignInType.ServerAuthCode && (!googleSignInOptions.ServerClientId || googleSignInOptions.ServerClientId === "")) {
+                reject("Missing ServerClientId while SignInType is ServerAuthCode");
             }
 
             if (googleSignInOptions.RequestProfile === null || typeof(googleSignInOptions.RequestProfile) === "undefined") {
@@ -297,7 +297,7 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
                 reject("Google on iOS requires either RequestProfile to be true or ExtraScopes to be set");
             }
 
-            if (googleSignInOptions.LoginType === GoogleSignInType.ServerAuthCode) {
+            if (googleSignInOptions.SignInType === GoogleSignInType.ServerAuthCode) {
                 GIDSignIn.sharedInstance().serverClientID = googleSignInOptions.ServerClientId;
             } else {
                 GIDSignIn.sharedInstance().serverClientID = "";

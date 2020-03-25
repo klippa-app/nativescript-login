@@ -225,7 +225,7 @@ import {GoogleSignInOptions, GoogleSignInType, startGoogleSignIn} from "@klippa/
 
 // The most basic sign in options.
 const signInOptions: GoogleSignInOptions = {
-    LoginType: GoogleSignInType.Local,
+    SignInType: GoogleSignInType.Local,
     RequestEmail: true
 };
 
@@ -239,8 +239,71 @@ startGoogleSignIn(signInOptions).then((result) => {
 ```
 
 ## API
+
+### Google
+
 **GoogleSignInOptions**:
 
+| Property | Description |
+| ---  | ---   |
+| SignInType | The type of sign in. `GoogleSignInType.LOCAL` is to use the information on the device, `GoogleSignInType.ServerAuthCode` for if you want to retrieve user information serverside.  |
+| ServerClientId | The Client ID of the server you are requesting a `ServerAuthCode` or `IdToken`. For when using login type is `ServerAuthCode`, or when `RequestIdToken is true`.  |
+| ForceCodeForRefreshToken | Used when type is ServerAuthCode. If true, the granted code can be exchanged for an access token and a refresh token. The first time you retrieve a code, a refresh_token will be granted automatically. Subsequent requests will require additional user consent. Use false by default; only use true if your server has suffered some failure and lost the user's refresh token. Only has effect on Android.  |
+| HostedDomain | Specifies a hosted domain restriction. By setting this, sign in will be restricted to accounts of the user in the specified domain. Domain of the user to restrict (for example, "mycollege.edu"),  |
+| AccountName | Specifies an account name on the device that should be used. If this is never called, the client will use the current default account for this application. The account name on the device that should be used to sign in. Only has effect on Android.  |
+| RequestIdToken | Specifies that an ID token for authenticated users is requested. Requesting an ID token requires that the server client ID be specified. iOS always return the user ID Token.  |
+| RequestId | Specifies that user ID is requested by your application. For iOS you can't control this, ID is always returned.  |
+| RequestEmail | Specifies that email info is requested by your application. Note that we don't recommend keying user by email address since email address might change. Keying user by ID is the preferable approach. For iOS you can't control this, use RequestProfile if you want the email.  |
+| RequestProfile | Specifies that user's profile info is requested by your application. Default: true. On iOS you have to either set RequestProfile or give custom scopes.  |
+| ExtraScopes | A list of `GoogleSignInScope` values to specify OAuth 2.0 scopes for your application requests. Normally you will not need this.  |
+| ForceAccountSelection | Whether you want to force account selection. If you enable this option we will logout the user for you in the app.  |
+
+**GoogleSignInResult**:
+
+| Property | Description |
+| ---  | ---   |
+| ResultType | The result, either `GoogleSignInResultType.FAILED` or `GoogleSignInResultType.SUCCESS`.  |
+| ErrorCode | When result type is `GoogleSignInResultType.FAILED`, the error code of the request.  |
+| ErrorMessage | When result type is `GoogleSignInResultType.FAILED`, the error message of the request.  |
+| GrantedScopes | A list of granted scopes.  |
+| RequestedScopes | A list of requested scopes. This is only filled in by the Android SDK. |
+| GivenName | -  |
+| Id | The ID of the user |
+| IdToken | The ID token (JWT) to send to your backend  |
+| DisplayName | - |
+| FamilyName |  - |
+| PhotoUrl | - |
+| Email | - |
+| ServerAuthCode | The Server Auth Code that your backend can use to retrieve user information.  |
+
+---
+
+### Facebook
+
+**FacebookLoginOptions**:
+
+| Property | Description |
+| ---  | ---   |
+| Scopes | The permissions to request. If you don't add this param, we will request public_profile and email for you.  |
+| RequestProfileData | Whether to request profile data. If you don't enable this, you will only get an ID and a token. Perfect for server side handling. If you do enable this, we use the requested token on the Graph API to request the user profile.  |
+| ProfileDataFields | The fields to fetch when requesting the profile data. When not set, we get the following fields: id,name,first_name,last_name,picture.type(large),email. Some fields might return a json serialized string, like the picture field.  |
+| ForceAccountSelection | Whether you want to force account selection. If you enable this option we will logout the user for you in the app.  |
+
+**FacebookLoginResult**:
+
+| Property | Description |
+| ---  | ---   |
+| ResultType | The result, either `FacebookLoginResultType.FAILED`, `FacebookLoginResultType.CANCELED` `FacebookLoginResultType.SUCCESS`.  |
+| ErrorCode | When result type is `FacebookLoginResultType.FAILED`, the error code of the request.  |
+| ErrorMessage | When result type is `FacebookLoginResultType.FAILED`, the error message of the request.  |
+| ProfileDataErrorCode | When result type is `FacebookLoginResultType.FAILED`, and `ErrorCode` is `2`, the error code of the profile request.  |
+| ProfileDataErrorMessage | When result type is `FacebookLoginResultType.FAILED`, and `ErrorCode` is `2`, the error message of the profile request.  |
+| ProfileDataUserErrorMessage | When result type is `FacebookLoginResultType.FAILED`, and `ErrorCode` is `2` the user error message of the profile request.  |
+| DeniedScopes | A list of denied scopes to validate whether the user gave permission for all requested scopes. |
+| GrantedScopes | A list of granted scopes. |
+| Id | The ID of the user |
+| AccessToken | The access token that your backend can use to retrieve user information.  |
+| ProfileDataFields | A map of of the profile fields that were requested in `FacebookLoginOptions.ProfileDataFields` |
 
 ## Roadmap
 * Sign in with Apple
