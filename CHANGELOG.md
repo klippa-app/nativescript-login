@@ -1,3 +1,9 @@
+## 1.0.3
+
+### Changed
+
+- Added Vue demo.
+
 ## 1.0.2
 
 ### Changed
