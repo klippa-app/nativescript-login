@@ -130,6 +130,22 @@ wireInFacebookLogin();
 platformNativeScriptDynamic().bootstrapModule(AppModule);
 ```
 
+NativeScript Vue:
+Edit `src/main.ts`:
+```typescript
+
+// Other imports.
+import {wireInFacebookLogin} from "@klippa/nativescript-login";
+
+// ... Other code/wirings
+
+wireInFacebookLogin();
+
+// ... Other code/wirings
+
+platformNativeScriptDynamic().bootstrapModule(AppModule);
+```
+
 ---
 
 ```typescript
