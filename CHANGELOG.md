@@ -2,7 +2,7 @@
 
 ### Changed
 
-- Make sure it's clear that wireInGoogleSignIn excepts the client ID for iOS.
+- Make sure it's clear that wireInGoogleSignIn expects the client ID for iOS.
 
 ## 1.0.1
 
