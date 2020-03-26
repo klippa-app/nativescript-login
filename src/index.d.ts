@@ -2,9 +2,9 @@ export { GoogleSignInOptions, GoogleSignInResult, GoogleSignInType, GoogleSignIn
 
 /**
  * Function to wire in the Google Sign In SDK. Only required for iOS support.
- * @param clientID The registed Client ID.
+ * @param iosClientID The registered Client ID for the iOS app.
  */
-export declare function wireInGoogleSignIn(clientID: string): void;
+export declare function wireInGoogleSignIn(iosClientID: string): void;
 
 /**
  * Start the Google Sign In flow with the given options.

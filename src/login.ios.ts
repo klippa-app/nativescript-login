@@ -53,7 +53,7 @@ class NativeScriptLoginGoogleDelegate extends NSObject implements GIDSignInDeleg
 
 const GoogleSignInDelegate = new NativeScriptLoginGoogleDelegate();
 
-export function wireInGoogleSignIn(clientID: string) {
+export function wireInGoogleSignIn(iosClientID: string) {
     let oldApplicationDidFinishLaunchingWithOptions;
     let oldApplicationOpenURLOptions;
 
@@ -77,7 +77,7 @@ export function wireInGoogleSignIn(clientID: string) {
         let addedGIDSignInDelegate = false;
 
         try {
-            GIDSignIn.sharedInstance().clientID = clientID;
+            GIDSignIn.sharedInstance().clientID = iosClientID;
             GIDSignIn.sharedInstance().delegate = GoogleSignInDelegate;
             addedGIDSignInDelegate = true;
         } catch (error) {

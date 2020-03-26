@@ -179,7 +179,7 @@ function AndroidScopeToGoogleSignInScope(scope: com.google.android.gms.common.ap
     return null;
 }
 
-export function wireInGoogleSignIn(clientID: string) {
+export function wireInGoogleSignIn(iosClientID: string) {
     // This function doesn't do anything on Android, SDK takes care of everything.
 }
 

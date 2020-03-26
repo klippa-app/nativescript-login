@@ -1,3 +1,9 @@
+## 1.0.2
+
+### Changed
+
+- Make sure it's clear that wireInGoogleSignIn excepts the client ID for iOS.
+
 ## 1.0.1
 
 ### Fixed
