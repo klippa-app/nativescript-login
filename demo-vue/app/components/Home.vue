@@ -19,11 +19,6 @@
     export default {
         data() {
             return {
-                isLoading: false,
-                hasContent: false,
-                contentType: "",
-                contentText: "",
-                contentImage: null
             }
         },
         mounted() {

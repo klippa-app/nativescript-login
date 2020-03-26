@@ -102,6 +102,7 @@ tns plugin add @klippa/nativescript-login
 
 Normal NativeScript:
 Edit `app/app.ts`:
+
 ```typescript
 import {wireInFacebookLogin} from "@klippa/nativescript-login";
 
@@ -116,6 +117,7 @@ app.run({ moduleName: "app-root" });
 
 NativeScript Angular:
 Edit `src/main.ts`:
+
 ```typescript
 
 // Other imports.
@@ -132,6 +134,7 @@ platformNativeScriptDynamic().bootstrapModule(AppModule);
 
 NativeScript Vue:
 Edit `src/main.ts`:
+
 ```typescript
 
 // Other imports.
@@ -143,7 +146,17 @@ wireInFacebookLogin();
 
 // ... Other code/wirings
 
-platformNativeScriptDynamic().bootstrapModule(AppModule);
+new Vue({
+
+    template: `
+        <Frame>
+            <Home />
+        </Frame>`,
+
+    components: {
+        Home
+    }
+}).$start();
 ```
 
 ---
@@ -228,6 +241,33 @@ wireInGoogleSignIn("{{CLIENT_ID}}");
 // ... Other code/wirings
 
 platformNativeScriptDynamic().bootstrapModule(AppModule);
+```
+
+NativeScript Vue:
+Edit `src/main.ts`:
+
+```typescript
+
+// Other imports.
+import {wireInGoogleSignIn} from "@klippa/nativescript-login";
+
+// ... Other code/wirings
+
+wireInGoogleSignIn("{{CLIENT_ID}}");
+
+// ... Other code/wirings
+
+new Vue({
+
+    template: `
+        <Frame>
+            <Home />
+        </Frame>`,
+
+    components: {
+        Home
+    }
+}).$start();
 ```
 
 Open the credentials.plist and copy the value between `<string>` and `</string>` below `<key>CLIENT_ID</key>`. Replace `{{CLIENT_ID}}` with the value you copied.
