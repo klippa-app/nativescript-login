@@ -1,3 +1,9 @@
+## 1.0.4
+
+### Changed
+
+- Updated readme.
+
 ## 1.0.3
 
 ### Changed
