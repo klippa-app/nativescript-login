@@ -12,13 +12,14 @@
 [downloads-image]:http://img.shields.io/npm/dm/@klippa/nativescript-login.svg
 [total-downloads-image]:http://img.shields.io/npm/dt/@klippa/nativescript-login.svg?label=total%20downloads
 
-**A plugin to allow login to various authentication providers.**
+:rocket: *The best way to do social logins in NativeScript* :rocket:
+
+**A plugin with modern SDKs to allow authentication to various providers with access to all SDK features.**
 
 ## Features
-* Login using native SDKs
-    * [Facebook Login](https://developers.facebook.com/docs/facebook-login/)
-    * [Google Sign In](https://developers.google.com/identity)
-    * Access to all Login SDK features
+* [Facebook Login](https://developers.facebook.com/docs/facebook-login/)
+* [Google Sign In](https://developers.google.com/identity)
+* Access to all Login SDK features
 
 ## Installation
 
@@ -364,6 +365,12 @@ startGoogleSignIn(signInOptions).then((result) => {
 ## Roadmap
 * Sign in with Apple
 * OAuth 2.0 and OpenID Connect authentication providers support
+
+## About Klippa
+
+[Klippa](https://www.klippa.com/en) is a scale-up from [Groningen, The Netherlands](https://goo.gl/maps/CcCGaPTBz3u8noSd6) and was founded in 2015 by six Dutch IT specialists with the goal to digitize paper processes with modern technologies.
+
+We help clients enhance the effectiveness of their organization by using machine learning and OCR. Since 2015 more than a 1000 happy clients have been served with a variety of the software solutions that Klippa offers. Our passion is to help our clients to digitize paper processes by using smart apps, accounts payable software and data extraction by using OCR.
 
 ## License
 
