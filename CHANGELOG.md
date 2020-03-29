@@ -1,3 +1,9 @@
+## 1.0.5
+
+### Fixed
+
+- Properly return all profile fields (like picture) as javascript objects
+
 ## 1.0.4
 
 ### Changed
