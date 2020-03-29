@@ -434,6 +434,9 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
                                 }
 
                                 result.ProfileDataFields = new Map<string, string>();
+
+                                // Convert profile in JSON String, then do JSON.Parse() to have a Javascript object.
+                                // This makes sure all data is proper Javascript data to be used.
                                 const profileObject = JSON.parse(obj.toString());
                                 const objectKeys = Object.keys(profileObject);
                                 const objectKeysLength = objectKeys.length;
