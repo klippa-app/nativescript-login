@@ -268,5 +268,5 @@ export class FacebookLoginResult {
     // Success fields.
     Id: string;
     AccessToken: string;
-    ProfileDataFields: Map<string, string>;
+    ProfileDataFields: Map<string, any>;
 }

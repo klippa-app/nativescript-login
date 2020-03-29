@@ -343,7 +343,7 @@ startGoogleSignIn(signInOptions).then((result) => {
 | ---  | ---   |
 | Scopes | The permissions to request. If you don't add this param, we will request public_profile and email for you.  |
 | RequestProfileData | Whether to request profile data. If you don't enable this, you will only get an ID and a token. Perfect for server side handling. If you do enable this, we use the requested token on the Graph API to request the user profile.  |
-| ProfileDataFields | The fields to fetch when requesting the profile data. When not set, we get the following fields: id,name,first_name,last_name,picture.type(large),email. Some fields might return a json serialized string, like the picture field.  |
+| ProfileDataFields | The fields to fetch when requesting the profile data. When not set, we get the following fields: id,name,first_name,last_name,picture.type(large),email. Some fields might return an object, like the picture field.  |
 | ForceAccountSelection | Whether you want to force account selection. If you enable this option we will logout the user for you in the app.  |
 
 **FacebookLoginResult**:

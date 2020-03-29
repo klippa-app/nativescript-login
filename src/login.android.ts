@@ -434,11 +434,12 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
                                 }
 
                                 result.ProfileDataFields = new Map<string, string>();
-
-                                const objectKeysLength = obj.names().length();
+                                const profileObject = JSON.parse(obj.toString());
+                                const objectKeys = Object.keys(profileObject);
+                                const objectKeysLength = objectKeys.length;
                                 for (let i = 0; i < objectKeysLength; i++) {
-                                    const keyName = obj.names().getString(i);
-                                    result.ProfileDataFields[keyName] = obj.get(keyName).toString();
+                                    const keyName = objectKeys[i];
+                                    result.ProfileDataFields.set(keyName, profileObject[keyName]);
                                 }
 
                                 resolve(result);
