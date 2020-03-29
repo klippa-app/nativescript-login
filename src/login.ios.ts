@@ -559,11 +559,17 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
 
                             loginResult.ProfileDataFields = new Map<string, string>();
 
-                            const objectKeysLength = obj.allKeys.count;
+                            const ProfileJSON = NSJSONSerialization.dataWithJSONObjectOptionsError(obj, 0);
+                            const ProfileJSONString = NSString.alloc().initWithDataEncoding(ProfileJSON, NSUTF8StringEncoding).toString();
+
+                            const profileObject = JSON.parse(ProfileJSONString);
+                            const objectKeys = Object.keys(profileObject);
+                            const objectKeysLength = objectKeys.length;
                             for (let i = 0; i < objectKeysLength; i++) {
-                                const keyName = obj.allKeys.objectAtIndex(i);
-                                loginResult.ProfileDataFields[keyName] = obj.objectForKey(keyName);
+                                const keyName = objectKeys[i];
+                                loginResult.ProfileDataFields.set(keyName, profileObject[keyName]);
                             }
+
 
                             resolve(loginResult);
                         });
