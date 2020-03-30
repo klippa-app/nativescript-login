@@ -331,9 +331,15 @@ export class SignInWithAppleResult {
     // An identifier associated with the authenticated user.
     User: string;
 
+    // The contact information the user authorized your app to access.
+    Email?: string;
+
+    // The user’s name.
+    FullName?: string;
+
     // With these fields you can validate whether the user gave permission for all requested scopes.
     AuthorizedScopes: Array<SignInWithAppleScope>;
 
     // A value that indicates whether the user appears to be a real person.
-    RealUserStatus: SignInWithAppleResultUserDetectionStatus;
+    RealUserStatus?: SignInWithAppleResultUserDetectionStatus;
 }

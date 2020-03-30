@@ -675,26 +675,61 @@ class ASAuthorizationControllerDelegateImpl extends NSObject /* implements ASAut
         return delegate;
     }
 
-    authorizationControllerDidCompleteWithAuthorization(controller: any /* ASAuthorizationController */, authorization: ASAuthorization /* ASAuthorization */): void {
-        const credential: ASAuthorizationAppleIDCredential = authorization.credential;
+    authorizationControllerDidCompleteWithAuthorization(controller: any /* ASAuthorizationController */, authorization: any /* ASAuthorization */): void {
+        const credential: any = authorization.credential; /* ASAuthorizationAppleIDCredential */
 
-        console.log(">>> credential.state: " + credential.state); // string
+        const result = new SignInWithAppleResult();
+        result.ResultType = SignInWithAppleResultType.SUCCESS;
+        result.User = credential.user;
 
-        // these properties don't seem useful for now
-        // const authCode = NSString.alloc().initWithDataEncoding(authorization.credential.authorizationCode, NSUTF8StringEncoding);
-        // console.log(">>> credential.identityToken: " + authorization.credential.identityToken); // nsdata
+        if (credential.state) {
+            result.State = credential.state;
+        }
 
-        // These require a scope
-        // console.log(">>> credential.fullName: " + authorization.credential.fullName); // NSPersonNameComponents (familyName, etc)
-        // console.log(">>> credential.email: " + authorization.credential.email); // string
+        if (credential.identityToken) {
+            result.IdentityToken = NSString.alloc().initWithDataEncoding(credential.identityToken, NSUTF8StringEncoding).toString();
+        }
 
-        // console.log(">>> credential.realUserStatus: " + authorization.credential.realUserStatus); // enum
+        if (credential.authorizationCode) {
+            result.AuthorizationCode = NSString.alloc().initWithDataEncoding(credential.authorizationCode, NSUTF8StringEncoding).toString();
+        }
 
-        // TODO return granted scopes
-        this.resolve(<SignInWithAppleCredentials>{
-            user: authorization.credential.user,
-            // scopes: authorization.credential.authorizedScopes // nsarray<asauthorizationscope>
-        });
+        if (credential.email) {
+            result.Email = credential.email;
+        }
+
+        if (credential.fullName) {
+            result.FullName = NSPersonNameComponentsFormatter.localizedStringFromPersonNameComponentsStyleOptions(credential.fullName, NSPersonNameComponentsFormatterStyle.Default, 0);
+        }
+
+        if (credential.realUserStatus) {
+            switch (credential.realUserStatus) {
+                case 2:
+                    result.RealUserStatus = SignInWithAppleResultUserDetectionStatus.LIKELYREAL;
+                    break;
+                case 1:
+                    result.RealUserStatus = SignInWithAppleResultUserDetectionStatus.UNKNOWN;
+                    break;
+                case 0:
+                    result.RealUserStatus = SignInWithAppleResultUserDetectionStatus.UNSUPPORTED;
+                    break;
+            }
+        }
+
+        result.AuthorizedScopes = new Array<SignInWithAppleScope>();
+
+        if (credential.authorizedScopes && credential.authorizedScopes.count) {
+            const authorizedScopesSize = credential.authorizedScopes.count;
+            for (let i = 0; i < authorizedScopesSize; i++) {
+                if (credential.authorizedScopes.objectAtIndex(i) === "EMAIL") {
+                    result.AuthorizedScopes.push(SignInWithAppleScope.EMAIL);
+                } else if (credential.authorizedScopes.objectAtIndex(i) === "FULLNAME") {
+                    result.AuthorizedScopes.push(SignInWithAppleScope.FULLNAME);
+                }
+            }
+        }
+
+        this.resolve(result);
     }
 
     authorizationControllerDidCompleteWithError(controller: any /* ASAuthorizationController */, error: NSError): void {
