@@ -296,13 +296,33 @@ startGoogleSignIn(signInOptions).then((result) => {
 ```
 
 ### Sign In with Apple
-#### Android integration
+#### Android integration (and iOS < 13)
 
 **Sadly, Sign In with Apple does not support Android, due to the way they made the JS version, it's also not possible to create a version in a webview. You will always need a backend to handle it. I will write a how-to on this later.**
 
 #### iOS integration (iOS >= 13)
 
-@todo
+```typescript
+import {SignInWithAppleOptions, startSignInWithApple, SignInWithAppleScope, signInWithAppleAvailable} from "@klippa/nativescript-login";
+import * as dialogs from "tns-core-modules/ui/dialogs";
+
+if (signInWithAppleAvailable()) {
+    // First create an options object:
+    const signInOptions: SignInWithAppleOptions = {
+        Scopes: [SignInWithAppleScope.EMAIL, SignInWithAppleScope.FULLNAME]
+    };
+
+    // Please note that result can also be a failure result.
+    // The actual result is in the object.
+    startSignInWithApple(signInOptions).then((result) => {
+        console.log("Sign In with Apple result: ", result);
+    }).catch((e) => {
+       console.log("Error while using Sign In with Apple: ", e);
+    });
+} else {
+    dialogs.alert("Sign In with Apple is not available for your device");
+}
+```
 
 ## API
 
