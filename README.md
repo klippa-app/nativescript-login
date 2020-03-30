@@ -105,7 +105,7 @@ Normal NativeScript:
 Edit `app/app.ts`:
 
 ```typescript
-import {wireInFacebookLogin} from "@klippa/nativescript-login";
+import { wireInFacebookLogin } from "@klippa/nativescript-login";
 
 // ... Other code/wirings
 
@@ -122,7 +122,7 @@ Edit `src/main.ts`:
 ```typescript
 
 // Other imports.
-import {wireInFacebookLogin} from "@klippa/nativescript-login";
+import { wireInFacebookLogin } from "@klippa/nativescript-login";
 
 // ... Other code/wirings
 
@@ -139,7 +139,7 @@ Edit `src/main.ts`:
 ```typescript
 
 // Other imports.
-import {wireInFacebookLogin} from "@klippa/nativescript-login";
+import { wireInFacebookLogin } from "@klippa/nativescript-login";
 
 // ... Other code/wirings
 
@@ -163,7 +163,7 @@ new Vue({
 ---
 
 ```typescript
-import {startFacebookLogin, FacebookLoginOptions} from "@klippa/nativescript-login";
+import { startFacebookLogin, FacebookLoginOptions } from "@klippa/nativescript-login";
 
 // First create an options object:
 
@@ -215,7 +215,7 @@ Normal NativeScript:
 Edit `app/app.ts`:
 
 ```typescript
-import {wireInGoogleSignIn} from "@klippa/nativescript-login";
+import { wireInGoogleSignIn } from "@klippa/nativescript-login";
 
 // ... Other code/wirings
 
@@ -233,7 +233,7 @@ Edit `src/main.ts`:
 ```typescript
 
 // Other imports.
-import {wireInGoogleSignIn} from "@klippa/nativescript-login";
+import { wireInGoogleSignIn } from "@klippa/nativescript-login";
 
 // ... Other code/wirings
 
@@ -250,7 +250,7 @@ Edit `src/main.ts`:
 ```typescript
 
 // Other imports.
-import {wireInGoogleSignIn} from "@klippa/nativescript-login";
+import { wireInGoogleSignIn } from "@klippa/nativescript-login";
 
 // ... Other code/wirings
 
@@ -276,7 +276,7 @@ Open the credentials.plist and copy the value between `<string>` and `</string>`
 ---
 
 ```typescript
-import {GoogleSignInOptions, GoogleSignInType, startGoogleSignIn} from "@klippa/nativescript-login";
+import { GoogleSignInOptions, GoogleSignInType, startGoogleSignIn } from "@klippa/nativescript-login";
 
 // First create an options object:
 
@@ -302,8 +302,10 @@ startGoogleSignIn(signInOptions).then((result) => {
 
 #### iOS integration (iOS >= 13)
 
+To start the login:
+
 ```typescript
-import {SignInWithAppleOptions, startSignInWithApple, SignInWithAppleScope, signInWithAppleAvailable} from "@klippa/nativescript-login";
+import { SignInWithAppleOptions, startSignInWithApple, SignInWithAppleScope, signInWithAppleAvailable } from "@klippa/nativescript-login";
 import * as dialogs from "tns-core-modules/ui/dialogs";
 
 if (signInWithAppleAvailable()) {
@@ -323,6 +325,36 @@ if (signInWithAppleAvailable()) {
     dialogs.alert("Sign In with Apple is not available for your device");
 }
 ```
+
+To get the current state:
+
+```typescript
+import { getSignInWithAppleState, signInWithAppleAvailable } from "@klippa/nativescript-login";
+import * as dialogs from "tns-core-modules/ui/dialogs";
+
+if (signInWithAppleAvailable()) {
+    // User ID must be the ID that was previously received from the sign in.
+    const userID = "";
+
+    // Please note that result can also be a failure result.
+    // The actual result is in the object.
+    getSignInWithAppleState(userID).then((result) => {
+        console.log("Sign in with Apple State result: ", result);
+    }).catch((e) => {
+       console.log("Error getting Sign in with Apple State: ", e);
+    });
+} else {
+    dialogs.alert("Sign In with Apple is not available for your device");
+}
+```
+
+## Other types of authentication
+
+To keep the scope of this project simple and clean, and to keep the dependencies small, we only support login providers that have native SDK's.
+If you want to support other ways of logging in, please check out these projects:
+
+* [nativescript-oauth2](https://github.com/alexziskind1/nativescript-oauth2)
+* [nativescript-inappbrowser](https://github.com/proyecto26/nativescript-inappbrowser)
 
 ## API
 
@@ -391,9 +423,39 @@ if (signInWithAppleAvailable()) {
 | AccessToken | The access token that your backend can use to retrieve user information.  |
 | ProfileDataFields | A map of of the profile fields that were requested in `FacebookLoginOptions.ProfileDataFields` |
 
-## Roadmap
-* Sign in with Apple
-* OAuth 2.0 and OpenID Connect authentication providers support
+### Apple
+
+**SignInWithAppleOptions**:
+
+| Property | Description |
+| ---  | ---   |
+| User | Not required. Not sure what this value does. The value that will be put in the user property of ASAuthorizationAppleIDRequest.  |
+| Scopes | The extra scopes to request. Normally you will only get the user ID. Note: a user can deny you access to these scopes. Possible values: SignInWithAppleScope.EMAIL and SignInWithAppleScope.FULLNAME  |
+
+**SignInWithAppleResult**:
+
+| Property | Description |
+| ---  | ---   |
+| ResultType | The result, either `SignInWithAppleResultType.ERROR`, `SignInWithAppleResultType.SUCCESS`.  |
+| ErrorCode | When result type is `SignInWithAppleResultType.ERROR`, the error code of the request.  |
+| ErrorMessage | When result type is `SignInWithAppleResultType.ERROR`, the error message of the request.  |
+| IdentityToken | A JSON Web Token (JWT) that securely communicates information about the user to your app. |
+| AuthorizationCode | A short-lived token used by your app for proof of authorization when interacting with the app’s server counterpart. |
+| State | An arbitrary string that your app provided to the request that generated the credential. |
+| User | An identifier associated with the authenticated user. |
+| Email | When you added the EMAIL scope. The contact information the user authorized your app to access. |
+| FullName | When you added the FULLNAME scope. The user’s name. |
+| AuthorizedScopes | A list of authorized scopes to validate whether the user gave permission for all requested scopes. |
+| RealUserStatus | A value that indicates whether the user appears to be a real person. |
+
+**SignInWithAppleStateResult**:
+
+| Property | Description |
+| ---  | ---   |
+| ResultType | The result, either `SignInWithAppleResultType.ERROR`, `SignInWithAppleResultType.SUCCESS`.  |
+| ErrorCode | When result type is `SignInWithAppleResultType.ERROR`, the error code of the request.  |
+| ErrorMessage | When result type is `SignInWithAppleResultType.ERROR`, the error message of the request.  |
+| State | The state of the authorization, either `SignInWithAppleStateResultState.REVOKED`, `SignInWithAppleStateResultState.AUTHORIZED` or `SignInWithAppleStateResultState.NOTFOUND`.  |
 
 ## About Klippa
 
