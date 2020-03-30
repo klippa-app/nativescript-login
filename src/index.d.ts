@@ -1,4 +1,4 @@
-export { GoogleSignInOptions, GoogleSignInResult, GoogleSignInType, GoogleSignInScope, GoogleSignInResultType, FacebookLoginOptions, FacebookLoginResult } from "./login.common";
+export { GoogleSignInOptions, GoogleSignInResult, GoogleSignInType, GoogleSignInScope, GoogleSignInResultType, FacebookLoginOptions, FacebookLoginResult, SignInWithAppleOptions, SignInWithAppleResult, SignInWithAppleScope, SignInWithAppleResultUserDetectionStatus } from "./login.common";
 
 /**
  * Function to wire in the Google Sign In SDK. Only required for iOS support.
@@ -22,3 +22,15 @@ export declare function wireInFacebookLogin(): void;
  * @param facebookLoginOptions
  */
 export declare function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): Promise<FacebookLoginResult>;
+
+/**
+ * Whether Sign In with Apple is available on this device.
+ */
+export declare function signInWithAppleAvailable(): boolean;
+
+/**
+ * Start the Sign In with Apple flow with the given options.
+ * Only available on >= iOS 13.
+ * @param signInWithAppleOptions
+ */
+export declare function startSignInWithApple(signInWithAppleOptions: SignInWithAppleOptions): Promise<SignInWithAppleResult>;

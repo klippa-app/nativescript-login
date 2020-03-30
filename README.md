@@ -295,6 +295,15 @@ startGoogleSignIn(signInOptions).then((result) => {
 });
 ```
 
+### Sign In with Apple
+#### Android integration
+
+**Sadly, Sign In with Apple does not support Android, due to the way they made the JS version, it's also not possible to create a version in a webview. You will always need a backend to handle it. I will write a how-to on this later.**
+
+#### iOS integration (iOS >= 13)
+
+@todo
+
 ## API
 
 ### Google

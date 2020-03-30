@@ -3,14 +3,28 @@ import {
     GoogleSignInResult,
     GoogleSignInType,
     GoogleSignInScope,
-    GoogleSignInResultType, FacebookLoginOptions, FacebookLoginResult, FacebookLoginResultType
+    GoogleSignInResultType,
+    FacebookLoginOptions,
+    FacebookLoginResult,
+    FacebookLoginResultType,
+    SignInWithAppleOptions,
+    SignInWithAppleResult,
+    SignInWithAppleScope,
+    SignInWithAppleResultUserDetectionStatus
 } from "./login.common";
 export {
     GoogleSignInOptions,
     GoogleSignInResult,
     GoogleSignInType,
     GoogleSignInScope,
-    GoogleSignInResultType, FacebookLoginOptions, FacebookLoginResult, FacebookLoginResultType
+    GoogleSignInResultType,
+    FacebookLoginOptions,
+    FacebookLoginResult,
+    FacebookLoginResultType,
+    SignInWithAppleOptions,
+    SignInWithAppleResult,
+    SignInWithAppleScope,
+    SignInWithAppleResultUserDetectionStatus
 } from "./login.common";
 
 import {
@@ -504,4 +518,12 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
             resolve(result);
         }
     });
+}
+
+export function signInWithAppleAvailable(): boolean {
+    return false;
+}
+
+export function startSignInWithApple(signInWithAppleOptions: SignInWithAppleOptions): Promise<SignInWithAppleResult> {
+    return Promise.reject("Sign In with Apple does not work on Android.");
 }

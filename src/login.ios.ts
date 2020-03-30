@@ -3,21 +3,36 @@ import {
     GoogleSignInResult,
     GoogleSignInType,
     GoogleSignInScope,
-    FacebookLoginOptions, FacebookLoginResult, GoogleSignInResultType, FacebookLoginResultType
+    FacebookLoginOptions,
+    FacebookLoginResult,
+    GoogleSignInResultType,
+    FacebookLoginResultType,
+    SignInWithAppleOptions,
+    SignInWithAppleResult,
+    SignInWithAppleScope,
+    SignInWithAppleResultUserDetectionStatus, SignInWithAppleResultType
 } from "./login.common";
 export {
     GoogleSignInOptions,
     GoogleSignInResult,
     GoogleSignInType,
     GoogleSignInScope,
-    FacebookLoginOptions, FacebookLoginResult, GoogleSignInResultType, FacebookLoginResultType
+    FacebookLoginOptions,
+    FacebookLoginResult,
+    GoogleSignInResultType,
+    FacebookLoginResultType,
+    SignInWithAppleScope,
+    SignInWithAppleResultUserDetectionStatus
 } from "./login.common";
 
+import { device } from "tns-core-modules/platform";
 import * as Application from "tns-core-modules/application";
 import {Subject} from "rxjs";
 
 const googleDidDisconnect: Subject<GoogleEventData> = new Subject<GoogleEventData>();
 const googleDidSignIn: Subject<GoogleEventData> = new Subject<GoogleEventData>();
+let authorizationController: any /* ASAuthorizationController */;
+let authorizationControllerDelegateImpl: ASAuthorizationControllerDelegateImpl;
 
 interface GoogleEventData {
     SignIn: GIDSignIn;
@@ -337,6 +352,7 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
                 cleanupSubscriptions();
                 if (signInDetails.Error) {
                     const result = new GoogleSignInResult();
+                    result.ResultType = GoogleSignInResultType.FAILED;
                     result.ErrorCode = signInDetails.Error.code;
                     result.ErrorMessage = signInDetails.Error.localizedDescription;
                     resolve(result);
@@ -344,6 +360,7 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
                 }
 
                 const result = new GoogleSignInResult();
+                result.ResultType = GoogleSignInResultType.FAILED;
                 result.ErrorCode = 0;
                 result.ErrorMessage = "User disconnected";
                 resolve(result);
@@ -360,6 +377,7 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
 
                 if (signInDetails.Error) {
                     const result = new GoogleSignInResult();
+                    result.ResultType = GoogleSignInResultType.FAILED;
                     result.ErrorCode = signInDetails.Error.code;
                     result.ErrorMessage = signInDetails.Error.localizedDescription;
                     resolve(result);
@@ -408,6 +426,7 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
             GIDSignIn.sharedInstance().signIn();
         } catch (e) {
             const result = new GoogleSignInResult();
+            result.ResultType = GoogleSignInResultType.FAILED;
             result.ErrorCode = 0;
             result.ErrorMessage = "Plugin error: " + e;
             cleanupSubscriptions();
@@ -588,3 +607,102 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
     });
 }
 
+export function signInWithAppleAvailable(): boolean {
+    return parseInt(device.osVersion) >= 13;
+}
+
+export function startSignInWithApple(signInWithAppleOptions: SignInWithAppleOptions): Promise<SignInWithAppleResult> {
+    if (!signInWithAppleAvailable()) {
+        return Promise.reject("Sign In with Apple only works on >= iOS 13.");
+    }
+
+    return new Promise<any>((resolve, reject) => {
+        const authorizationAppleIDProvider = ASAuthorizationAppleIDProvider.new();
+        const authorizationAppleIDRequest = authorizationAppleIDProvider.createRequest();
+
+        if (signInWithAppleOptions && signInWithAppleOptions.User) {
+            authorizationAppleIDRequest.user = signInWithAppleOptions.User;
+        }
+
+        if (signInWithAppleOptions && signInWithAppleOptions.Scopes) {
+            const nsArray: NSMutableArray<string> = NSMutableArray.new();
+            signInWithAppleOptions.Scopes.forEach(scope => {
+                switch (scope) {
+                    case SignInWithAppleScope.EMAIL:
+                        nsArray.addObject(ASAuthorizationScopeEmail);
+                        break;
+                    case SignInWithAppleScope.FULLNAME:
+                        nsArray.addObject(ASAuthorizationScopeFullName);
+                        break;
+                }
+            });
+            authorizationAppleIDRequest.requestedScopes = nsArray;
+        }
+
+        const nsArrayRequests: NSMutableArray<any> = NSMutableArray.new();
+        nsArrayRequests.addObject(authorizationAppleIDRequest);
+
+        authorizationController = ASAuthorizationController.alloc().initWithAuthorizationRequests(nsArrayRequests);
+        authorizationController.delegate = authorizationControllerDelegateImpl = ASAuthorizationControllerDelegateImpl.createWithPromise(resolve, reject);
+        authorizationController.performRequests();
+    });
+}
+
+// Based on work by Eddy Verbruggen in nativescript-apple-sign-in.
+class ASAuthorizationControllerDelegateImpl extends NSObject /* implements ASAuthorizationControllerDelegate */ {
+    public static ObjCProtocols = [];
+    private resolve;
+    private reject;
+
+    public static new(): ASAuthorizationControllerDelegateImpl {
+        try {
+            ASAuthorizationControllerDelegateImpl.ObjCProtocols.push(ASAuthorizationControllerDelegate);
+            return <ASAuthorizationControllerDelegateImpl>super.new();
+        } catch (ignore) {
+            console.log("Apple Sign In not supported on this device - it requires iOS 13+. Tip: use 'isSignInWithAppleSupported' before calling 'signInWithApple'.");
+            return null;
+        }
+    }
+
+    public static createWithPromise(resolve, reject): ASAuthorizationControllerDelegateImpl {
+        const delegate = <ASAuthorizationControllerDelegateImpl>ASAuthorizationControllerDelegateImpl.new();
+        if (delegate === null) {
+            reject("Not supported");
+        } else {
+            delegate.resolve = resolve;
+            delegate.reject = reject;
+        }
+        return delegate;
+    }
+
+    authorizationControllerDidCompleteWithAuthorization(controller: any /* ASAuthorizationController */, authorization: ASAuthorization /* ASAuthorization */): void {
+        const credential: ASAuthorizationAppleIDCredential = authorization.credential;
+
+        console.log(">>> credential.state: " + credential.state); // string
+
+        // these properties don't seem useful for now
+        // const authCode = NSString.alloc().initWithDataEncoding(authorization.credential.authorizationCode, NSUTF8StringEncoding);
+        // console.log(">>> credential.identityToken: " + authorization.credential.identityToken); // nsdata
+
+        // These require a scope
+        // console.log(">>> credential.fullName: " + authorization.credential.fullName); // NSPersonNameComponents (familyName, etc)
+        // console.log(">>> credential.email: " + authorization.credential.email); // string
+
+        // console.log(">>> credential.realUserStatus: " + authorization.credential.realUserStatus); // enum
+
+        // TODO return granted scopes
+        this.resolve(<SignInWithAppleCredentials>{
+            user: authorization.credential.user,
+            // scopes: authorization.credential.authorizedScopes // nsarray<asauthorizationscope>
+        });
+    }
+
+    authorizationControllerDidCompleteWithError(controller: any /* ASAuthorizationController */, error: NSError): void {
+        this.reject(error.localizedDescription);
+        const result = new SignInWithAppleResult();
+        result.ResultType = SignInWithAppleResultType.ERROR;
+        result.ErrorCode = error.code;
+        result.ErrorMessage = error.localizedDescription;
+        this.resolve(result);
+    }
+}
