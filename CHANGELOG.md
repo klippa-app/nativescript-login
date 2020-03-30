@@ -1,8 +1,12 @@
-## 1.0.5
+## 1.1.0
 
 ### Fixed
 
 - Properly return all profile fields (like picture) as javascript objects
+
+### Added
+
+- Sign In with Apple functionality
 
 ## 1.0.4
 
