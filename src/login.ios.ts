@@ -733,7 +733,6 @@ class ASAuthorizationControllerDelegateImpl extends NSObject /* implements ASAut
     }
 
     authorizationControllerDidCompleteWithError(controller: any /* ASAuthorizationController */, error: NSError): void {
-        this.reject(error.localizedDescription);
         const result = new SignInWithAppleResult();
         result.ResultType = SignInWithAppleResultType.ERROR;
         result.ErrorCode = error.code;
