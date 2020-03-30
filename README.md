@@ -298,7 +298,7 @@ startGoogleSignIn(signInOptions).then((result) => {
 ### Sign In with Apple
 
 - Go to [the Apple developer website](https://developer.apple.com/account/resources/identifiers/list) and create a new app identifier with the "Sign In with Apple" Capability enabled. Make sure you sign your app with a provisioning profile using that app identifier.
-- Open your app's `App_Resources/iOS` folder and [add this](https://github.com/klippa-app/nativescript-http/blob/master/demo/app/App_Resources/iOS/app.entitlements) (or append) to a file named `app.entitlements`. 
+- Open your app's `App_Resources/iOS` folder and [add this](https://github.com/klippa-app/nativescript-login/blob/master/demo/app/App_Resources/iOS/app.entitlements) (or append) to a file named `app.entitlements`.
 
 #### Android integration (and iOS < 13)
 
