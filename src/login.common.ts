@@ -343,3 +343,24 @@ export class SignInWithAppleResult {
     // A value that indicates whether the user appears to be a real person.
     RealUserStatus?: SignInWithAppleResultUserDetectionStatus;
 }
+
+export enum SignInWithAppleStateResultState {
+    // Authorization for the given user has been revoked.
+    REVOKED,
+
+    // The user is authorized.
+    AUTHORIZED,
+
+    // The user can’t be found.
+    NOTFOUND,
+}
+
+export class SignInWithAppleStateResult {
+    ResultType: SignInWithAppleResultType;
+
+    // Failed fields.
+    ErrorCode: number;
+    ErrorMessage: string;
+
+    State: SignInWithAppleStateResultState;
+}

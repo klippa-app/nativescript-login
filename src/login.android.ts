@@ -10,7 +10,10 @@ import {
     SignInWithAppleOptions,
     SignInWithAppleResult,
     SignInWithAppleScope,
-    SignInWithAppleResultUserDetectionStatus
+    SignInWithAppleResultUserDetectionStatus,
+    SignInWithAppleResultType,
+    SignInWithAppleStateResult,
+    SignInWithAppleStateResultState
 } from "./login.common";
 export {
     GoogleSignInOptions,
@@ -24,7 +27,10 @@ export {
     SignInWithAppleOptions,
     SignInWithAppleResult,
     SignInWithAppleScope,
-    SignInWithAppleResultUserDetectionStatus
+    SignInWithAppleResultUserDetectionStatus,
+    SignInWithAppleResultType,
+    SignInWithAppleStateResult,
+    SignInWithAppleStateResultState
 } from "./login.common";
 
 import {
@@ -525,5 +531,9 @@ export function signInWithAppleAvailable(): boolean {
 }
 
 export function startSignInWithApple(signInWithAppleOptions: SignInWithAppleOptions): Promise<SignInWithAppleResult> {
+    return Promise.reject("Sign In with Apple does not work on Android.");
+}
+
+export function getSignInWithAppleState(userID: string): Promise<SignInWithAppleStateResult> {
     return Promise.reject("Sign In with Apple does not work on Android.");
 }

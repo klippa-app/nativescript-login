@@ -1,4 +1,18 @@
-export { GoogleSignInOptions, GoogleSignInResult, GoogleSignInType, GoogleSignInScope, GoogleSignInResultType, FacebookLoginOptions, FacebookLoginResult, SignInWithAppleOptions, SignInWithAppleResult, SignInWithAppleScope, SignInWithAppleResultUserDetectionStatus } from "./login.common";
+export {
+    GoogleSignInOptions,
+    GoogleSignInResult,
+    GoogleSignInType,
+    GoogleSignInScope,
+    GoogleSignInResultType,
+    FacebookLoginOptions,
+    FacebookLoginResult,
+    SignInWithAppleOptions,
+    SignInWithAppleResult,
+    SignInWithAppleScope,
+    SignInWithAppleResultUserDetectionStatus,
+    SignInWithAppleStateResult,
+    SignInWithAppleStateResultState
+} from "./login.common";
 
 /**
  * Function to wire in the Google Sign In SDK. Only required for iOS support.
@@ -34,3 +48,10 @@ export declare function signInWithAppleAvailable(): boolean;
  * @param signInWithAppleOptions
  */
 export declare function startSignInWithApple(signInWithAppleOptions: SignInWithAppleOptions): Promise<SignInWithAppleResult>;
+
+/**
+ * Get the Sign In with Apple state.
+ * Only available on >= iOS 13.
+ * @param userID An opaque string associated with the Apple ID that your app receives in the credential’s user property after performing a successful authentication request.
+ */
+export declare function getSignInWithAppleState(userID: string): Promise<SignInWithAppleStateResult>;

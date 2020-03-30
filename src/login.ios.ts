@@ -10,7 +10,10 @@ import {
     SignInWithAppleOptions,
     SignInWithAppleResult,
     SignInWithAppleScope,
-    SignInWithAppleResultUserDetectionStatus, SignInWithAppleResultType
+    SignInWithAppleResultUserDetectionStatus,
+    SignInWithAppleResultType,
+    SignInWithAppleStateResult,
+    SignInWithAppleStateResultState
 } from "./login.common";
 export {
     GoogleSignInOptions,
@@ -21,8 +24,13 @@ export {
     FacebookLoginResult,
     GoogleSignInResultType,
     FacebookLoginResultType,
+    SignInWithAppleOptions,
+    SignInWithAppleResult,
     SignInWithAppleScope,
-    SignInWithAppleResultUserDetectionStatus
+    SignInWithAppleResultUserDetectionStatus,
+    SignInWithAppleResultType,
+    SignInWithAppleStateResult,
+    SignInWithAppleStateResultState
 } from "./login.common";
 
 import { device } from "tns-core-modules/platform";
@@ -740,4 +748,38 @@ class ASAuthorizationControllerDelegateImpl extends NSObject /* implements ASAut
         result.ErrorMessage = error.localizedDescription;
         this.resolve(result);
     }
+}
+
+export function getSignInWithAppleState(userID: string): Promise<SignInWithAppleStateResult> {
+    if (!signInWithAppleAvailable()) {
+        return Promise.reject("Sign In with Apple only works on >= iOS 13.");
+    }
+
+    return new Promise<any>((resolve, reject) => {
+        const authorizationAppleIDProvider = ASAuthorizationAppleIDProvider.new();
+        authorizationAppleIDProvider.getCredentialStateForUserIDCompletion(userID, (state: any /* enum: ASAuthorizationAppleIDProviderCredentialState */, error: NSError) => {
+            if (error) {
+                const result = new SignInWithAppleStateResult();
+                result.ResultType = SignInWithAppleResultType.ERROR;
+                result.ErrorCode = error.code;
+                result.ErrorMessage = error.localizedDescription;
+                resolve(result);
+
+                return;
+            }
+
+            const result = new SignInWithAppleStateResult();
+            result.ResultType = SignInWithAppleResultType.SUCCESS;
+
+            if (state === 1) { // ASAuthorizationAppleIDProviderCredential.Authorized
+                result.State = SignInWithAppleStateResultState.AUTHORIZED;
+            } else if (state === 2) { // ASAuthorizationAppleIDProviderCredential.NotFound
+                result.State = SignInWithAppleStateResultState.NOTFOUND;
+            } else if (state === 3) { // ASAuthorizationAppleIDProviderCredential.Revoked
+                result.State = SignInWithAppleStateResultState.REVOKED;
+            }
+
+            resolve(result);
+        });
+    });
 }
