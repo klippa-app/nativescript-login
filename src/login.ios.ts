@@ -584,25 +584,17 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
                                 return;
                             }
 
-                            loginResult.ProfileDataFields = new Map<string, string>();
-
                             // Convert profile in JSON String, then do JSON.Parse() to have a Javascript object.
                             // This makes sure all data is proper Javascript data to be used.
                             const ProfileJSON = NSJSONSerialization.dataWithJSONObjectOptionsError(obj, 0);
                             const ProfileJSONString = NSString.alloc().initWithDataEncoding(ProfileJSON, NSUTF8StringEncoding).toString();
 
-                            const profileObject = JSON.parse(ProfileJSONString);
-                            const objectKeys = Object.keys(profileObject);
-                            const objectKeysLength = objectKeys.length;
-                            for (let i = 0; i < objectKeysLength; i++) {
-                                const keyName = objectKeys[i];
-                                loginResult.ProfileDataFields.set(keyName, profileObject[keyName]);
-                            }
-
+                            loginResult.ProfileDataFields = JSON.parse(ProfileJSONString);
 
                             resolve(loginResult);
                         });
                 } else {
+                    loginResult.ProfileDataFields = {};
                     resolve(loginResult);
                 }
             });

@@ -268,7 +268,7 @@ export class FacebookLoginResult {
     // Success fields.
     Id: string;
     AccessToken: string;
-    ProfileDataFields: Map<string, any>;
+    ProfileDataFields: {[key: string]: any};
 }
 
 export enum SignInWithAppleScope {
