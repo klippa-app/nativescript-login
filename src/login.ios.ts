@@ -3,21 +3,44 @@ import {
     GoogleSignInResult,
     GoogleSignInType,
     GoogleSignInScope,
-    FacebookLoginOptions, FacebookLoginResult, GoogleSignInResultType, FacebookLoginResultType
+    FacebookLoginOptions,
+    FacebookLoginResult,
+    GoogleSignInResultType,
+    FacebookLoginResultType,
+    SignInWithAppleOptions,
+    SignInWithAppleResult,
+    SignInWithAppleScope,
+    SignInWithAppleResultUserDetectionStatus,
+    SignInWithAppleResultType,
+    SignInWithAppleStateResult,
+    SignInWithAppleStateResultState
 } from "./login.common";
 export {
     GoogleSignInOptions,
     GoogleSignInResult,
     GoogleSignInType,
     GoogleSignInScope,
-    FacebookLoginOptions, FacebookLoginResult, GoogleSignInResultType, FacebookLoginResultType
+    FacebookLoginOptions,
+    FacebookLoginResult,
+    GoogleSignInResultType,
+    FacebookLoginResultType,
+    SignInWithAppleOptions,
+    SignInWithAppleResult,
+    SignInWithAppleScope,
+    SignInWithAppleResultUserDetectionStatus,
+    SignInWithAppleResultType,
+    SignInWithAppleStateResult,
+    SignInWithAppleStateResultState
 } from "./login.common";
 
+import { device } from "tns-core-modules/platform";
 import * as Application from "tns-core-modules/application";
 import {Subject} from "rxjs";
 
 const googleDidDisconnect: Subject<GoogleEventData> = new Subject<GoogleEventData>();
 const googleDidSignIn: Subject<GoogleEventData> = new Subject<GoogleEventData>();
+let authorizationController: any /* ASAuthorizationController */;
+let authorizationControllerDelegateImpl: ASAuthorizationControllerDelegateImpl;
 
 interface GoogleEventData {
     SignIn: GIDSignIn;
@@ -337,6 +360,7 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
                 cleanupSubscriptions();
                 if (signInDetails.Error) {
                     const result = new GoogleSignInResult();
+                    result.ResultType = GoogleSignInResultType.FAILED;
                     result.ErrorCode = signInDetails.Error.code;
                     result.ErrorMessage = signInDetails.Error.localizedDescription;
                     resolve(result);
@@ -344,6 +368,7 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
                 }
 
                 const result = new GoogleSignInResult();
+                result.ResultType = GoogleSignInResultType.FAILED;
                 result.ErrorCode = 0;
                 result.ErrorMessage = "User disconnected";
                 resolve(result);
@@ -360,6 +385,7 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
 
                 if (signInDetails.Error) {
                     const result = new GoogleSignInResult();
+                    result.ResultType = GoogleSignInResultType.FAILED;
                     result.ErrorCode = signInDetails.Error.code;
                     result.ErrorMessage = signInDetails.Error.localizedDescription;
                     resolve(result);
@@ -408,6 +434,7 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
             GIDSignIn.sharedInstance().signIn();
         } catch (e) {
             const result = new GoogleSignInResult();
+            result.ResultType = GoogleSignInResultType.FAILED;
             result.ErrorCode = 0;
             result.ErrorMessage = "Plugin error: " + e;
             cleanupSubscriptions();
@@ -557,25 +584,17 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
                                 return;
                             }
 
-                            loginResult.ProfileDataFields = new Map<string, string>();
-
                             // Convert profile in JSON String, then do JSON.Parse() to have a Javascript object.
                             // This makes sure all data is proper Javascript data to be used.
                             const ProfileJSON = NSJSONSerialization.dataWithJSONObjectOptionsError(obj, 0);
                             const ProfileJSONString = NSString.alloc().initWithDataEncoding(ProfileJSON, NSUTF8StringEncoding).toString();
 
-                            const profileObject = JSON.parse(ProfileJSONString);
-                            const objectKeys = Object.keys(profileObject);
-                            const objectKeysLength = objectKeys.length;
-                            for (let i = 0; i < objectKeysLength; i++) {
-                                const keyName = objectKeys[i];
-                                loginResult.ProfileDataFields.set(keyName, profileObject[keyName]);
-                            }
-
+                            loginResult.ProfileDataFields = JSON.parse(ProfileJSONString);
 
                             resolve(loginResult);
                         });
                 } else {
+                    loginResult.ProfileDataFields = {};
                     resolve(loginResult);
                 }
             });
@@ -588,3 +607,171 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
     });
 }
 
+export function signInWithAppleAvailable(): boolean {
+    return parseInt(device.osVersion) >= 13;
+}
+
+export function startSignInWithApple(signInWithAppleOptions: SignInWithAppleOptions): Promise<SignInWithAppleResult> {
+    if (!signInWithAppleAvailable()) {
+        return Promise.reject("Sign In with Apple only works on >= iOS 13.");
+    }
+
+    return new Promise<any>((resolve, reject) => {
+        const authorizationAppleIDProvider = ASAuthorizationAppleIDProvider.new();
+        const authorizationAppleIDRequest = authorizationAppleIDProvider.createRequest();
+
+        if (signInWithAppleOptions && signInWithAppleOptions.User) {
+            authorizationAppleIDRequest.user = signInWithAppleOptions.User;
+        }
+
+        if (signInWithAppleOptions && signInWithAppleOptions.Scopes) {
+            const nsArray: NSMutableArray<string> = NSMutableArray.new();
+            signInWithAppleOptions.Scopes.forEach(scope => {
+                switch (scope) {
+                    case SignInWithAppleScope.EMAIL:
+                        nsArray.addObject(ASAuthorizationScopeEmail);
+                        break;
+                    case SignInWithAppleScope.FULLNAME:
+                        nsArray.addObject(ASAuthorizationScopeFullName);
+                        break;
+                }
+            });
+            authorizationAppleIDRequest.requestedScopes = nsArray;
+        }
+
+        const nsArrayRequests: NSMutableArray<any> = NSMutableArray.new();
+        nsArrayRequests.addObject(authorizationAppleIDRequest);
+
+        authorizationController = ASAuthorizationController.alloc().initWithAuthorizationRequests(nsArrayRequests);
+        authorizationController.delegate = authorizationControllerDelegateImpl = ASAuthorizationControllerDelegateImpl.createWithPromise(resolve, reject);
+        authorizationController.performRequests();
+    });
+}
+
+// Based on work by Eddy Verbruggen in nativescript-apple-sign-in.
+class ASAuthorizationControllerDelegateImpl extends NSObject /* implements ASAuthorizationControllerDelegate */ {
+    public static ObjCProtocols = [];
+    private resolve;
+    private reject;
+
+    public static new(): ASAuthorizationControllerDelegateImpl {
+        try {
+            ASAuthorizationControllerDelegateImpl.ObjCProtocols.push(ASAuthorizationControllerDelegate);
+            return <ASAuthorizationControllerDelegateImpl>super.new();
+        } catch (ignore) {
+            console.log("Apple Sign In not supported on this device - it requires iOS 13+. Tip: use 'isSignInWithAppleSupported' before calling 'signInWithApple'.");
+            return null;
+        }
+    }
+
+    public static createWithPromise(resolve, reject): ASAuthorizationControllerDelegateImpl {
+        const delegate = <ASAuthorizationControllerDelegateImpl>ASAuthorizationControllerDelegateImpl.new();
+        if (delegate === null) {
+            reject("Not supported");
+        } else {
+            delegate.resolve = resolve;
+            delegate.reject = reject;
+        }
+        return delegate;
+    }
+
+    authorizationControllerDidCompleteWithAuthorization(controller: any /* ASAuthorizationController */, authorization: any /* ASAuthorization */): void {
+        const credential: any = authorization.credential; /* ASAuthorizationAppleIDCredential */
+
+        const result = new SignInWithAppleResult();
+        result.ResultType = SignInWithAppleResultType.SUCCESS;
+        result.User = credential.user;
+
+        if (credential.state) {
+            result.State = credential.state;
+        }
+
+        if (credential.identityToken) {
+            result.IdentityToken = NSString.alloc().initWithDataEncoding(credential.identityToken, NSUTF8StringEncoding).toString();
+        }
+
+        if (credential.authorizationCode) {
+            result.AuthorizationCode = NSString.alloc().initWithDataEncoding(credential.authorizationCode, NSUTF8StringEncoding).toString();
+        }
+
+        if (credential.email) {
+            result.Email = credential.email;
+        }
+
+        if (credential.fullName) {
+            result.FullName = NSPersonNameComponentsFormatter.localizedStringFromPersonNameComponentsStyleOptions(credential.fullName, NSPersonNameComponentsFormatterStyle.Default, 0);
+        }
+
+        if (credential.realUserStatus) {
+            switch (credential.realUserStatus) {
+                case 2:
+                    result.RealUserStatus = SignInWithAppleResultUserDetectionStatus.LIKELYREAL;
+                    break;
+                case 1:
+                    result.RealUserStatus = SignInWithAppleResultUserDetectionStatus.UNKNOWN;
+                    break;
+                case 0:
+                    result.RealUserStatus = SignInWithAppleResultUserDetectionStatus.UNSUPPORTED;
+                    break;
+            }
+        }
+
+        result.AuthorizedScopes = new Array<SignInWithAppleScope>();
+
+        if (credential.authorizedScopes && credential.authorizedScopes.count) {
+            const authorizedScopesSize = credential.authorizedScopes.count;
+            for (let i = 0; i < authorizedScopesSize; i++) {
+                if (credential.authorizedScopes.objectAtIndex(i) === "EMAIL") {
+                    result.AuthorizedScopes.push(SignInWithAppleScope.EMAIL);
+                } else if (credential.authorizedScopes.objectAtIndex(i) === "FULLNAME") {
+                    result.AuthorizedScopes.push(SignInWithAppleScope.FULLNAME);
+                }
+            }
+        }
+
+        this.resolve(result);
+    }
+
+    authorizationControllerDidCompleteWithError(controller: any /* ASAuthorizationController */, error: NSError): void {
+        this.reject(error.localizedDescription);
+        const result = new SignInWithAppleResult();
+        result.ResultType = SignInWithAppleResultType.ERROR;
+        result.ErrorCode = error.code;
+        result.ErrorMessage = error.localizedDescription;
+        this.resolve(result);
+    }
+}
+
+export function getSignInWithAppleState(userID: string): Promise<SignInWithAppleStateResult> {
+    if (!signInWithAppleAvailable()) {
+        return Promise.reject("Sign In with Apple only works on >= iOS 13.");
+    }
+
+    return new Promise<any>((resolve, reject) => {
+        const authorizationAppleIDProvider = ASAuthorizationAppleIDProvider.new();
+        authorizationAppleIDProvider.getCredentialStateForUserIDCompletion(userID, (state: any /* enum: ASAuthorizationAppleIDProviderCredentialState */, error: NSError) => {
+            if (error) {
+                const result = new SignInWithAppleStateResult();
+                result.ResultType = SignInWithAppleResultType.ERROR;
+                result.ErrorCode = error.code;
+                result.ErrorMessage = error.localizedDescription;
+                resolve(result);
+
+                return;
+            }
+
+            const result = new SignInWithAppleStateResult();
+            result.ResultType = SignInWithAppleResultType.SUCCESS;
+
+            if (state === 1) { // ASAuthorizationAppleIDProviderCredential.Authorized
+                result.State = SignInWithAppleStateResultState.AUTHORIZED;
+            } else if (state === 2) { // ASAuthorizationAppleIDProviderCredential.NotFound
+                result.State = SignInWithAppleStateResultState.NOTFOUND;
+            } else if (state === 3) { // ASAuthorizationAppleIDProviderCredential.Revoked
+                result.State = SignInWithAppleStateResultState.REVOKED;
+            }
+
+            resolve(result);
+        });
+    });
+}

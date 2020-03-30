@@ -268,5 +268,99 @@ export class FacebookLoginResult {
     // Success fields.
     Id: string;
     AccessToken: string;
-    ProfileDataFields: Map<string, any>;
+    ProfileDataFields: {[key: string]: any};
+}
+
+export enum SignInWithAppleScope {
+    // Whether you want to have the email of the user returned.
+    EMAIL,
+
+    // Whether you want the full name of the user returned.
+    FULLNAME
+}
+
+export interface SignInWithAppleOptions {
+    /**
+     * The value that will be put in the user property of ASAuthorizationAppleIDRequest.
+     */
+    User?: string;
+
+    /**
+     * The extra scopes to request. Normally you will only get the user ID.
+     * Note: a user can deny you access to these scopes.
+     */
+    Scopes?: Array<SignInWithAppleScope>;
+}
+
+export enum SignInWithAppleResultType {
+    // When the login failed.
+    ERROR,
+
+    // When the login was success.
+    SUCCESS,
+}
+
+export enum SignInWithAppleResultUserDetectionStatus {
+    // The system can’t determine this user’s status as a real person.
+    UNSUPPORTED,
+
+    // The system hasn’t determined whether the user might be a real person.
+    UNKNOWN,
+
+    // The user appears to be a real person.
+    LIKELYREAL,
+}
+
+export class SignInWithAppleResult {
+    ResultType: SignInWithAppleResultType;
+
+    // Failed fields.
+    ErrorCode: number;
+    ErrorMessage: string;
+
+    // Success fields.
+    // A JSON Web Token (JWT) that securely communicates information about the user to your app.
+    IdentityToken: string;
+
+    // A short-lived token used by your app for proof of authorization when interacting with the app’s server counterpart.
+    AuthorizationCode: string;
+
+    // An arbitrary string that your app provided to the request that generated the credential.
+    State: string;
+
+    // An identifier associated with the authenticated user.
+    User: string;
+
+    // The contact information the user authorized your app to access.
+    Email?: string;
+
+    // The user’s name.
+    FullName?: string;
+
+    // With these fields you can validate whether the user gave permission for all requested scopes.
+    AuthorizedScopes: Array<SignInWithAppleScope>;
+
+    // A value that indicates whether the user appears to be a real person.
+    RealUserStatus?: SignInWithAppleResultUserDetectionStatus;
+}
+
+export enum SignInWithAppleStateResultState {
+    // Authorization for the given user has been revoked.
+    REVOKED,
+
+    // The user is authorized.
+    AUTHORIZED,
+
+    // The user can’t be found.
+    NOTFOUND,
+}
+
+export class SignInWithAppleStateResult {
+    ResultType: SignInWithAppleResultType;
+
+    // Failed fields.
+    ErrorCode: number;
+    ErrorMessage: string;
+
+    State: SignInWithAppleStateResultState;
 }

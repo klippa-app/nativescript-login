@@ -5,16 +5,25 @@
         </ActionBar>
 
         <GridLayout rows="auto, *" columns="*">
-            <GridLayout rows="auto" columns="*, *">
-                <Button col="0" text="Google login" @tap="googleLogin"></Button>
-                <Button col="1" text="Facebook login" @tap="facebookLogin"></Button>
+            <GridLayout rows="auto" columns="*, *, *">
+                <Button col="0" text="Google Sign In" @tap="googleSignIn"></Button>
+                <Button col="1" text="Facebook Login" @tap="facebookLogin"></Button>
+                <Button col="2" text="Sign In with Apple"  @tap="signInWithApple"></Button>
             </GridLayout>
         </GridLayout>
     </Page>
 </template>
 
 <script>
-    import {GoogleSignInType, startGoogleSignIn, startFacebookLogin} from "@klippa/nativescript-login";
+    import {
+        GoogleSignInType,
+        startGoogleSignIn,
+        startFacebookLogin,
+        startSignInWithApple,
+        SignInWithAppleScope,
+        signInWithAppleAvailable
+    } from "@klippa/nativescript-login";
+    import * as dialogs from "tns-core-modules/ui/dialogs";
 
     export default {
         data() {
@@ -25,7 +34,7 @@
 
         },
         methods: {
-            googleLogin() {
+            googleSignIn() {
                 const signInOptions = {
                     SignInType: GoogleSignInType.Local,
                     ForceAccountSelection: true
@@ -50,6 +59,25 @@
                     console.log("Error while logging in to Facebook: ", e);
                 });
             },
+
+            signInWithApple() {
+                if (signInWithAppleAvailable()) {
+                    // First create an options object:
+                    const signInOptions = {
+                        Scopes: [SignInWithAppleScope.EMAIL, SignInWithAppleScope.FULLNAME]
+                    };
+
+                    // Please note that result can also be a failure result.
+                    // The actual result is in the object.
+                    startSignInWithApple(signInOptions).then((result) => {
+                        console.log("Sign In with Apple result: ", result);
+                    }).catch((e) => {
+                        console.log("Error while using Sign In with Apple: ", e);
+                    });
+                } else {
+                    dialogs.alert("Sign In with Apple is not available for your device");
+                }
+            }
         },
         computed: {
             message() {

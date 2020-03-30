@@ -3,14 +3,34 @@ import {
     GoogleSignInResult,
     GoogleSignInType,
     GoogleSignInScope,
-    GoogleSignInResultType, FacebookLoginOptions, FacebookLoginResult, FacebookLoginResultType
+    GoogleSignInResultType,
+    FacebookLoginOptions,
+    FacebookLoginResult,
+    FacebookLoginResultType,
+    SignInWithAppleOptions,
+    SignInWithAppleResult,
+    SignInWithAppleScope,
+    SignInWithAppleResultUserDetectionStatus,
+    SignInWithAppleResultType,
+    SignInWithAppleStateResult,
+    SignInWithAppleStateResultState
 } from "./login.common";
 export {
     GoogleSignInOptions,
     GoogleSignInResult,
     GoogleSignInType,
     GoogleSignInScope,
-    GoogleSignInResultType, FacebookLoginOptions, FacebookLoginResult, FacebookLoginResultType
+    GoogleSignInResultType,
+    FacebookLoginOptions,
+    FacebookLoginResult,
+    FacebookLoginResultType,
+    SignInWithAppleOptions,
+    SignInWithAppleResult,
+    SignInWithAppleScope,
+    SignInWithAppleResultUserDetectionStatus,
+    SignInWithAppleResultType,
+    SignInWithAppleStateResult,
+    SignInWithAppleStateResultState
 } from "./login.common";
 
 import {
@@ -433,17 +453,9 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
                                     return;
                                 }
 
-                                result.ProfileDataFields = new Map<string, string>();
-
                                 // Convert profile in JSON String, then do JSON.Parse() to have a Javascript object.
                                 // This makes sure all data is proper Javascript data to be used.
-                                const profileObject = JSON.parse(obj.toString());
-                                const objectKeys = Object.keys(profileObject);
-                                const objectKeysLength = objectKeys.length;
-                                for (let i = 0; i < objectKeysLength; i++) {
-                                    const keyName = objectKeys[i];
-                                    result.ProfileDataFields.set(keyName, profileObject[keyName]);
-                                }
+                                result.ProfileDataFields = JSON.parse(obj.toString());
 
                                 resolve(result);
                             }
@@ -462,6 +474,7 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
                         request.setParameters(params);
                         request.executeAsync();
                     } else {
+                        result.ProfileDataFields = {};
                         resolve(result);
                     }
                 }
@@ -504,4 +517,16 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
             resolve(result);
         }
     });
+}
+
+export function signInWithAppleAvailable(): boolean {
+    return false;
+}
+
+export function startSignInWithApple(signInWithAppleOptions: SignInWithAppleOptions): Promise<SignInWithAppleResult> {
+    return Promise.reject("Sign In with Apple does not work on Android.");
+}
+
+export function getSignInWithAppleState(userID: string): Promise<SignInWithAppleStateResult> {
+    return Promise.reject("Sign In with Apple does not work on Android.");
 }
