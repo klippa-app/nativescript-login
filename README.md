@@ -42,7 +42,7 @@ tns plugin add @klippa/nativescript-login
     <string name="app_name">{{app-name}}</string>
     <string name="title_activity_kimera">{{app-name}}</string>
     <string name="facebook_app_id">{{app-id}}</string>
-    <string name="fb_login_protocol_scheme">{{app-id}}</string>
+    <string name="fb_login_protocol_scheme">fb{{app-id}}</string>
 </resources>
 ```
 
