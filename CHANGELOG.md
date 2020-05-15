@@ -2,11 +2,11 @@
 
 ### Fixed
 
-- Properly return all profile fields (like picture) as javascript objects
+- Properly return all profile fields (like picture) as javascript objects for Facebook in ProfileDataFields.
 
 ### Added
 
-- Sign In with Apple functionality
+- Sign In with Apple functionality.
 
 ## 1.0.4
 

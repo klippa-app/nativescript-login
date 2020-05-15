@@ -19,6 +19,7 @@
 ## Features
 * [Facebook Login](https://developers.facebook.com/docs/facebook-login/)
 * [Google Sign In](https://developers.google.com/identity)
+* [Sign In with Apple](https://developer.apple.com/sign-in-with-apple/) (iOS only)
 * Access to all Login SDK features
 
 ## Installation
