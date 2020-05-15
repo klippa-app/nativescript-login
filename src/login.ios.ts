@@ -684,22 +684,32 @@ class ASAuthorizationControllerDelegateImpl extends NSObject /* implements ASAut
 
         if (credential.state) {
             result.State = credential.state;
+        } else {
+            result.State = "";
         }
 
         if (credential.identityToken) {
             result.IdentityToken = NSString.alloc().initWithDataEncoding(credential.identityToken, NSUTF8StringEncoding).toString();
+        } else {
+            result.IdentityToken = "";
         }
 
         if (credential.authorizationCode) {
             result.AuthorizationCode = NSString.alloc().initWithDataEncoding(credential.authorizationCode, NSUTF8StringEncoding).toString();
+        } else {
+            result.AuthorizationCode = "";
         }
 
         if (credential.email) {
             result.Email = credential.email;
+        } else {
+            result.Email = "";
         }
 
         if (credential.fullName) {
             result.FullName = NSPersonNameComponentsFormatter.localizedStringFromPersonNameComponentsStyleOptions(credential.fullName, NSPersonNameComponentsFormatterStyle.Default, 0);
+        } else {
+            result.FullName = "";
         }
 
         if (credential.realUserStatus) {
@@ -714,6 +724,8 @@ class ASAuthorizationControllerDelegateImpl extends NSObject /* implements ASAut
                     result.RealUserStatus = SignInWithAppleResultUserDetectionStatus.UNSUPPORTED;
                     break;
             }
+        } else {
+            result.RealUserStatus = SignInWithAppleResultUserDetectionStatus.UNKNOWN;
         }
 
         result.AuthorizedScopes = new Array<SignInWithAppleScope>();
@@ -762,12 +774,14 @@ export function getSignInWithAppleState(userID: string): Promise<SignInWithApple
             const result = new SignInWithAppleStateResult();
             result.ResultType = SignInWithAppleResultType.SUCCESS;
 
-            if (state === 1) { // ASAuthorizationAppleIDProviderCredential.Authorized
+            if (state === 0) { // ASAuthorizationAppleIDProviderCredential.Revoked
+                result.State = SignInWithAppleStateResultState.REVOKED;
+            } else if (state === 1) { // ASAuthorizationAppleIDProviderCredential.Authorized
                 result.State = SignInWithAppleStateResultState.AUTHORIZED;
             } else if (state === 2) { // ASAuthorizationAppleIDProviderCredential.NotFound
                 result.State = SignInWithAppleStateResultState.NOTFOUND;
-            } else if (state === 3) { // ASAuthorizationAppleIDProviderCredential.Revoked
-                result.State = SignInWithAppleStateResultState.REVOKED;
+            } else if (state === 3) { // ASAuthorizationAppleIDProviderCredential.Transferred
+                result.State = SignInWithAppleStateResultState.TRANSFERRED;
             }
 
             resolve(result);

@@ -332,9 +332,13 @@ export class SignInWithAppleResult {
     User: string;
 
     // The contact information the user authorized your app to access.
+    // It's possible that this is a @privaterelay.appleid.com when the user did not share their personal email address
+    // Only available when the user authorizes your app for the first time.
+    // However, it is always available in the JWT token in the IdentityToken field.
     Email?: string;
 
     // The user’s name.
+    // Only available when the user authorizes your app for the first time.
     FullName?: string;
 
     // With these fields you can validate whether the user gave permission for all requested scopes.
@@ -353,6 +357,9 @@ export enum SignInWithAppleStateResultState {
 
     // The user can’t be found.
     NOTFOUND,
+
+    // The authorization has been transferred.
+    TRANSFERRED,
 }
 
 export class SignInWithAppleStateResult {
