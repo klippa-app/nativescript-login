@@ -708,8 +708,12 @@ class ASAuthorizationControllerDelegateImpl extends NSObject /* implements ASAut
 
         if (credential.fullName) {
             result.FullName = NSPersonNameComponentsFormatter.localizedStringFromPersonNameComponentsStyleOptions(credential.fullName, NSPersonNameComponentsFormatterStyle.Default, 0);
+            result.GivenName = credential.fullName.givenName;
+            result.FamilyName = credential.fullName.familyName;
         } else {
             result.FullName = "";
+            result.GivenName = "";
+            result.FamilyName = "";
         }
 
         if (credential.realUserStatus) {

@@ -341,6 +341,14 @@ export class SignInWithAppleResult {
     // Only available when the user authorizes your app for the first time.
     FullName?: string;
 
+    // The user’s given (first) name.
+    // Only available when the user authorizes your app for the first time.
+    GivenName?: string;
+
+    // The user’s family (last) name.
+    // Only available when the user authorizes your app for the first time.
+    FamilyName?: string;
+
     // With these fields you can validate whether the user gave permission for all requested scopes.
     AuthorizedScopes: Array<SignInWithAppleScope>;
 
