@@ -13,7 +13,8 @@ import {
     SignInWithAppleResultUserDetectionStatus,
     SignInWithAppleResultType,
     SignInWithAppleStateResult,
-    SignInWithAppleStateResultState
+    SignInWithAppleStateResultState,
+    SignInWithAppleNameComponents
 } from "./login.common";
 export {
     GoogleSignInOptions,
@@ -292,6 +293,20 @@ function iOSScopeToGoogleSignInScope(scope: string): GoogleSignInScope {
     }
 
     return null;
+}
+
+function setAppleNameComponents(components?: NSPersonNameComponents): SignInWithAppleNameComponents {
+    if (components)
+        return {
+            GivenName: components.givenName,
+            MiddleName: components.middleName,
+            FamilyName: components.familyName,
+            NamePrefix: components.namePrefix,
+            NameSuffix: components.nameSuffix,
+            Nickname: components.nickname
+        }
+    else
+        return undefined
 }
 
 export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Promise<GoogleSignInResult> {
@@ -708,12 +723,10 @@ class ASAuthorizationControllerDelegateImpl extends NSObject /* implements ASAut
 
         if (credential.fullName) {
             result.FullName = NSPersonNameComponentsFormatter.localizedStringFromPersonNameComponentsStyleOptions(credential.fullName, NSPersonNameComponentsFormatterStyle.Default, 0);
-            result.GivenName = credential.fullName.givenName;
-            result.FamilyName = credential.fullName.familyName;
+            result.NameComponents = setAppleNameComponents(credential.fullName)
+            result.NameComponents.PhoneticRepresentation = setAppleNameComponents(credential.fullName.phoneticRepresentation)
         } else {
             result.FullName = "";
-            result.GivenName = "";
-            result.FamilyName = "";
         }
 
         if (credential.realUserStatus) {

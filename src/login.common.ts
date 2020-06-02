@@ -341,13 +341,9 @@ export class SignInWithAppleResult {
     // Only available when the user authorizes your app for the first time.
     FullName?: string;
 
-    // The user’s given (first) name.
+    // The user's name components (e.g., first name, last name, suffix).
     // Only available when the user authorizes your app for the first time.
-    GivenName?: string;
-
-    // The user’s family (last) name.
-    // Only available when the user authorizes your app for the first time.
-    FamilyName?: string;
+    NameComponents?: SignInWithAppleNameComponents;
 
     // With these fields you can validate whether the user gave permission for all requested scopes.
     AuthorizedScopes: Array<SignInWithAppleScope>;
@@ -378,4 +374,27 @@ export class SignInWithAppleStateResult {
     ErrorMessage: string;
 
     State: SignInWithAppleStateResultState;
+}
+
+export class SignInWithAppleNameComponents {
+    // The user’s given (first) name.
+    GivenName?: string;
+
+    // The user’s middle name.
+    MiddleName?: string;
+
+    // The user’s family (last) name.
+    FamilyName?: string;
+
+    // The user’s name prefix (e.g., Dr., Ms.).
+    NamePrefix?: string;
+
+    // The user’s name suffix (e.g., Jr., Ph.D.).
+    NameSuffix?: string;
+
+    // The user’s nickname.
+    Nickname?: string;
+
+    // The phonetic representation of the user's name.
+    PhoneticRepresentation?: SignInWithAppleNameComponents;
 }
