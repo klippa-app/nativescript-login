@@ -185,7 +185,7 @@ startFacebookLogin(loginOptions).then((result) => {
 
 * Follow the `Configure a Google API Console project` step in the [manual](https://developers.google.com/identity/sign-in/android/start-integrating).
 * Follow the `Get your backend server's OAuth 2.0 client ID` step in the [manual](https://developers.google.com/identity/sign-in/android/start-integrating) if you want to request a server auth code to request the user information server side. 
-* Logging in with your Facebook account should now work! The SDK takes care of the rest.
+* Logging in with your Google account should now work! The SDK takes care of the rest.
 
 #### iOS integration
 
