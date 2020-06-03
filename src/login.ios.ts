@@ -725,8 +725,8 @@ class ASAuthorizationControllerDelegateImpl extends NSObject /* implements ASAut
 
         if (credential.fullName) {
             result.FullName = NSPersonNameComponentsFormatter.localizedStringFromPersonNameComponentsStyleOptions(credential.fullName, NSPersonNameComponentsFormatterStyle.Default, 0);
-            result.NameComponents = setAppleNameComponents(credential.fullName)
-            result.NameComponents.PhoneticRepresentation = setAppleNameComponents(credential.fullName.phoneticRepresentation)
+            result.NameComponents = setAppleNameComponents(credential.fullName);
+            result.NameComponents.PhoneticRepresentation = setAppleNameComponents(credential.fullName.phoneticRepresentation);
         } else {
             result.FullName = "";
         }
