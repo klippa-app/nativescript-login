@@ -2,7 +2,7 @@
 
 ### Added
 
-- Add all name components to Sign In with Apple.
+- Add all name components to Sign In with Apple. [fgutteridge](https://github.com/fgutteridge) [#2](https://github.com/klippa-app/nativescript-login/pull/2)
 
 ## 1.1.0
 
