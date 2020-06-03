@@ -452,6 +452,7 @@ If you want to support other ways of logging in, please check out these projects
 | User | An identifier associated with the authenticated user. |
 | Email | When you added the EMAIL scope. The contact information the user authorized your app to access, it's possible that this is a `@privaterelay.appleid.com` when the user did not share their personal email address. Only available when the user authorizes your app for the first time. However, it is always available in the JWT token in the IdentityToken field. |
 | FullName | When you added the FULLNAME scope. The user’s name. Only available when the user authorizes your app for the first time. |
+| NameComponents | When you added the FULLNAME scope. The user’s name, represented as name components (e.g., first name, suffix, nickname). Only available when the user authorizes your app for the first time. |
 | AuthorizedScopes | A list of authorized scopes to validate whether the user gave permission for all requested scopes. |
 | RealUserStatus | A value that indicates whether the user appears to be a real person. |
 
@@ -463,6 +464,18 @@ If you want to support other ways of logging in, please check out these projects
 | ErrorCode | When result type is `SignInWithAppleResultType.ERROR`, the error code of the request.  |
 | ErrorMessage | When result type is `SignInWithAppleResultType.ERROR`, the error message of the request.  |
 | State | The state of the authorization, either `SignInWithAppleStateResultState.REVOKED`, `SignInWithAppleStateResultState.AUTHORIZED` or `SignInWithAppleStateResultState.NOTFOUND`.  |
+
+**SignInWithAppleNameComponents**:
+
+| Property | Description |
+| ---  | ---   |
+| GivenName | The user's given (first) name.  |
+| MiddleName | The user's middle name.  |
+| FamilyName | The user's family (last) name.  |
+| NamePrefix | The user's name prefix (e.g., Dr., Ms.).  |
+| NameSuffix | The user's name suffix (e.g., Ph.D., Jr.).  |
+| Nickname | The user's nickname.  |
+| PhoneticRepresentation | The user's name, as pronounced phonetically, represented as name components (e.g., first name, suffix, nickname).  |
 
 ## About Klippa
 
