@@ -13,7 +13,8 @@ import {
     SignInWithAppleResultUserDetectionStatus,
     SignInWithAppleResultType,
     SignInWithAppleStateResult,
-    SignInWithAppleStateResultState
+    SignInWithAppleStateResultState,
+    SignInWithAppleNameComponents
 } from "./login.common";
 export {
     GoogleSignInOptions,
@@ -30,7 +31,8 @@ export {
     SignInWithAppleResultUserDetectionStatus,
     SignInWithAppleResultType,
     SignInWithAppleStateResult,
-    SignInWithAppleStateResultState
+    SignInWithAppleStateResultState,
+    SignInWithAppleNameComponents
 } from "./login.common";
 
 import {

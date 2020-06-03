@@ -31,7 +31,8 @@ export {
     SignInWithAppleResultUserDetectionStatus,
     SignInWithAppleResultType,
     SignInWithAppleStateResult,
-    SignInWithAppleStateResultState
+    SignInWithAppleStateResultState,
+    SignInWithAppleNameComponents
 } from "./login.common";
 
 import { device } from "tns-core-modules/platform";
@@ -296,7 +297,7 @@ function iOSScopeToGoogleSignInScope(scope: string): GoogleSignInScope {
 }
 
 function setAppleNameComponents(components?: NSPersonNameComponents): SignInWithAppleNameComponents {
-    if (components)
+    if (components) {
         return {
             GivenName: components.givenName,
             MiddleName: components.middleName,
@@ -304,9 +305,10 @@ function setAppleNameComponents(components?: NSPersonNameComponents): SignInWith
             NamePrefix: components.namePrefix,
             NameSuffix: components.nameSuffix,
             Nickname: components.nickname
-        }
-    else
-        return undefined
+        };
+    } else {
+        return undefined;
+    }
 }
 
 export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Promise<GoogleSignInResult> {

@@ -1,3 +1,9 @@
+## 1.1.1
+
+### Added
+
+- Add all name components to Sign In with Apple.
+
 ## 1.1.0
 
 ### Fixed
