@@ -10,8 +10,9 @@ repositories {
 }
 
 dependencies {
-    def googlePlayServicesVersion = project.hasProperty('googlePlayServicesVersion') ? project.googlePlayServicesVersion : "17.0.0"
-
+    def googlePlayServicesVersion = project.hasProperty('googlePlayServicesVersion') ? project.googlePlayServicesVersion : "18.0.0"
     implementation "com.google.android.gms:play-services-auth:$googlePlayServicesVersion"
-    implementation "com.facebook.android:facebook-login:6.2.0"
+
+    def facebookSDKVersion = project.hasProperty('facebookSDKVersion') ? project.facebookSDKVersion : "7.1.0"
+    implementation "com.facebook.android:facebook-login:$facebookSDKVersion"
 }
