@@ -1,3 +1,14 @@
+## 1.1.2
+
+### Changed
+
+- Upgraded Android dependencies: 18.0.0 for Google Play Services, 7.1.0 for Facebook SDK.
+
+### Added
+
+- Added a warning about Facebook data collection.
+- Added the ability to override the Android Facebook SDK version by defining the `facebookSDKVersion` property in your gradle file.
+
 ## 1.1.1
 
 ### Added
