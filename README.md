@@ -180,6 +180,11 @@ startFacebookLogin(loginOptions).then((result) => {
 });
 ```
 
+#### Warning: Facebook's Automatically Logged Events
+When you use the Facebook SDK, certain events in your app are automatically logged and collected for Facebook Analytics unless you disable automatic event logging.
+You can disable it [on Android](https://developers.facebook.com/docs/app-events/getting-started-app-events-android#disable-auto-events) and [on iOS](https://developers.facebook.com/docs/app-events/getting-started-app-events-ios#disable-auto-events) by doing minor configuration changes.
+If you are only using the Facebook SDK because of the login feature, I would advise to disable the "Automatically Logged Events" to prevent leaking information from your users to Facebook (even if there are not using Facebook).
+
 ### Google Sign In
 #### Android integration
 
