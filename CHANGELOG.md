@@ -1,3 +1,9 @@
+## 1.1.3
+
+### Fixed
+
+- Export `SignInWithAppleResultType`.
+
 ## 1.1.2
 
 ### Changed

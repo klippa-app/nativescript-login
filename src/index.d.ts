@@ -12,7 +12,8 @@ export {
     SignInWithAppleResultUserDetectionStatus,
     SignInWithAppleStateResult,
     SignInWithAppleStateResultState,
-    SignInWithAppleNameComponents
+    SignInWithAppleNameComponents,
+    SignInWithAppleResultType
 } from "./login.common";
 
 /**
