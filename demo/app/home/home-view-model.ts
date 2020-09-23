@@ -1,5 +1,3 @@
-import { Observable } from "tns-core-modules/data/observable";
-
 import {
     GoogleSignInOptions,
     GoogleSignInType,
@@ -11,7 +9,11 @@ import {
     SignInWithAppleScope,
     signInWithAppleAvailable
 } from "@klippa/nativescript-login";
-import * as dialogs from "tns-core-modules/ui/dialogs";
+
+import {
+    Observable,
+    Dialogs,
+} from '@nativescript/core';
 
 export class HomeViewModel extends Observable {
 
@@ -60,7 +62,7 @@ export class HomeViewModel extends Observable {
                 console.log("Error while using Sign In with Apple: ", e);
             });
         } else {
-            dialogs.alert("Sign In with Apple is not available for your device");
+            Dialogs.alert("Sign In with Apple is not available for your device");
         }
     }
 }

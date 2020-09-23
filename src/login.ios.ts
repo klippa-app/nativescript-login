@@ -35,9 +35,8 @@ export {
     SignInWithAppleNameComponents
 } from "./login.common";
 
-import { device } from "tns-core-modules/platform";
-import * as Application from "tns-core-modules/application";
-import {Subject} from "rxjs";
+import { Device, Application } from "@nativescript/core";
+import { Subject } from "rxjs";
 
 const googleDidDisconnect: Subject<GoogleEventData> = new Subject<GoogleEventData>();
 const googleDidSignIn: Subject<GoogleEventData> = new Subject<GoogleEventData>();
@@ -50,14 +49,14 @@ interface GoogleEventData {
     Error: NSError;
 }
 
-@ObjCClass(UIApplicationDelegate)
+@NativeClass()
 class NativeScriptLoginUIApplicationDelegateImpl extends UIResponder implements UIApplicationDelegate {
-    static ObjCProtocols = [UIApplicationDelegate];
+    public static ObjCProtocols = [UIApplicationDelegate];
 }
 
-@ObjCClass(GIDSignInDelegate)
+@NativeClass()
 class NativeScriptLoginGoogleDelegate extends NSObject implements GIDSignInDelegate {
-    static ObjCProtocols = [GIDSignInDelegate];
+    public static ObjCProtocols = [GIDSignInDelegate];
 
     signInDidDisconnectWithUserWithError(signIn: GIDSignIn, user: GIDGoogleUser, error: NSError) {
         googleDidDisconnect.next({
@@ -625,7 +624,7 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
 }
 
 export function signInWithAppleAvailable(): boolean {
-    return parseInt(device.osVersion) >= 13;
+    return parseInt(Device.osVersion) >= 13;
 }
 
 export function startSignInWithApple(signInWithAppleOptions: SignInWithAppleOptions): Promise<SignInWithAppleResult> {
@@ -666,6 +665,7 @@ export function startSignInWithApple(signInWithAppleOptions: SignInWithAppleOpti
 }
 
 // Based on work by Eddy Verbruggen in nativescript-apple-sign-in.
+@NativeClass()
 class ASAuthorizationControllerDelegateImpl extends NSObject /* implements ASAuthorizationControllerDelegate */ {
     public static ObjCProtocols = [];
     private resolve;

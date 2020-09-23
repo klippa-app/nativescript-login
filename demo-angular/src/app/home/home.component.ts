@@ -10,7 +10,7 @@ import {
     SignInWithAppleScope,
     signInWithAppleAvailable
 } from "@klippa/nativescript-login";
-import * as dialogs from "tns-core-modules/ui/dialogs";
+import { Dialogs } from "@nativescript/core";
 
 @Component({
     selector: "Home",
@@ -66,7 +66,7 @@ export class HomeComponent implements OnInit {
                 console.log("Error while using Sign In with Apple: ", e);
             });
         } else {
-            dialogs.alert("Sign In with Apple is not available for your device");
+            Dialogs.alert("Sign In with Apple is not available for your device");
         }
     }
 }
