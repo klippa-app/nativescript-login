@@ -22,10 +22,16 @@
 * [Sign In with Apple](https://developer.apple.com/sign-in-with-apple/) (iOS only)
 * Access to all Login SDK features
 
-## Installation
+## NativeScript Version Support
+| NS Version | nativescript-http version | Install command | Docs |
+| ---        | ---                       | ---             | --- |
+| ^7.0.0 | ^2.0.0 | ns plugin add @klippa/nativescript-login | This page |
+| ^6.0.0 | ^1.0.0 | tns plugin add @klippa/nativescript-login@^1.0.0 | [Here](https://github.com/klippa-app/nativescript-login/blob/ns-version/6/README.md) |
+
+## Installation (NS 7)
 
 ```
-tns plugin add @klippa/nativescript-login
+ns plugin add @klippa/nativescript-login
 ```
 
 ## Usage
@@ -316,7 +322,7 @@ To start the login:
 
 ```typescript
 import { SignInWithAppleOptions, startSignInWithApple, SignInWithAppleScope, signInWithAppleAvailable } from "@klippa/nativescript-login";
-import * as dialogs from "tns-core-modules/ui/dialogs";
+import { Dialogs } from "@nativescript/core";
 
 if (signInWithAppleAvailable()) {
     // First create an options object:
@@ -332,7 +338,7 @@ if (signInWithAppleAvailable()) {
        console.log("Error while using Sign In with Apple: ", e);
     });
 } else {
-    dialogs.alert("Sign In with Apple is not available for your device");
+    Dialogs.alert("Sign In with Apple is not available for your device");
 }
 ```
 
@@ -340,7 +346,7 @@ To get the current state:
 
 ```typescript
 import { getSignInWithAppleState, signInWithAppleAvailable } from "@klippa/nativescript-login";
-import * as dialogs from "tns-core-modules/ui/dialogs";
+import { Dialogs } from "@nativescript/core";
 
 if (signInWithAppleAvailable()) {
     // User ID must be the ID that was previously received from the sign in.
@@ -354,7 +360,7 @@ if (signInWithAppleAvailable()) {
        console.log("Error getting Sign in with Apple State: ", e);
     });
 } else {
-    dialogs.alert("Sign In with Apple is not available for your device");
+    Dialogs.alert("Sign In with Apple is not available for your device");
 }
 ```
 
