@@ -35,9 +35,8 @@ export {
     SignInWithAppleNameComponents
 } from "./login.common";
 
-import { device } from "tns-core-modules/platform";
-import * as Application from "tns-core-modules/application";
-import {Subject} from "rxjs";
+import { Device, Application } from "@nativescript/core";
+import { Subject } from "rxjs";
 
 const googleDidDisconnect: Subject<GoogleEventData> = new Subject<GoogleEventData>();
 const googleDidSignIn: Subject<GoogleEventData> = new Subject<GoogleEventData>();
@@ -625,7 +624,7 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
 }
 
 export function signInWithAppleAvailable(): boolean {
-    return parseInt(device.osVersion) >= 13;
+    return parseInt(Device.osVersion) >= 13;
 }
 
 export function startSignInWithApple(signInWithAppleOptions: SignInWithAppleOptions): Promise<SignInWithAppleResult> {

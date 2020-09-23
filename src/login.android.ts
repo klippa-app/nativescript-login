@@ -35,11 +35,7 @@ export {
     SignInWithAppleNameComponents
 } from "./login.common";
 
-import {
-    android as Android,
-    AndroidApplication,
-    AndroidActivityResultEventData
-} from 'tns-core-modules/application/application';
+import { Application, AndroidApplication, AndroidActivityResultEventData } from "@nativescript/core";
 
 function GoogleSignInScopeToAndroidScope(scope: GoogleSignInScope): com.google.android.gms.common.api.Scope {
     switch (scope) {
@@ -274,7 +270,7 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
         }
 
         const gso = gsoBuilder.build();
-        const mGoogleSignInClient = com.google.android.gms.auth.api.signin.GoogleSignIn.getClient(Android.foregroundActivity, gso);
+        const mGoogleSignInClient = com.google.android.gms.auth.api.signin.GoogleSignIn.getClient(Application.android.foregroundActivity, gso);
 
         const startSignIn = () => {
             const RC_SIGN_IN = 9206;
@@ -285,7 +281,7 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
                                           intent
                                       }: AndroidActivityResultEventData) => {
                 if (requestCode === RC_SIGN_IN) {
-                    Android.off(AndroidApplication.activityResultEvent, onActivityResult);
+                    Application.android.off(AndroidApplication.activityResultEvent, onActivityResult);
                     const completedTask = com.google.android.gms.auth.api.signin.GoogleSignIn.getSignedInAccountFromIntent(intent);
                     try {
                         const account = <com.google.android.gms.auth.api.signin.GoogleSignInAccount>completedTask.getResult(com.google.android.gms.common.api.ApiException.class);
@@ -351,14 +347,14 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
                 }
             };
 
-            Android.on(AndroidApplication.activityResultEvent, onActivityResult);
+            Application.android.on(AndroidApplication.activityResultEvent, onActivityResult);
 
-            Android.foregroundActivity.startActivityForResult(signInIntent, RC_SIGN_IN);
+            Application.android.foregroundActivity.startActivityForResult(signInIntent, RC_SIGN_IN);
         };
 
         if (googleSignInOptions.ForceAccountSelection) {
             // Force sign out when we always want to select an account.
-            mGoogleSignInClient.signOut().addOnCompleteListener(Android.foregroundActivity, new com.google.android.gms.tasks.OnCompleteListener({
+            mGoogleSignInClient.signOut().addOnCompleteListener(Application.android.foregroundActivity, new com.google.android.gms.tasks.OnCompleteListener({
                 onComplete: (res: any) => {
                     startSignIn();
                 }
@@ -496,15 +492,15 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
                                           intent
                                       }: AndroidActivityResultEventData) => {
                 if (requestCode === RC_LOG_IN) {
-                    Android.off(AndroidApplication.activityResultEvent, onActivityResult);
+                    Application.android.off(AndroidApplication.activityResultEvent, onActivityResult);
                     callbackManager.onActivityResult(requestCode, resultCode, intent);
                 }
             };
 
-            Android.on(AndroidApplication.activityResultEvent, onActivityResult);
+            Application.android.on(AndroidApplication.activityResultEvent, onActivityResult);
 
             loginManager.logInWithReadPermissions(
-                Android.foregroundActivity,
+                Application.android.foregroundActivity,
                 java.util.Arrays.asList(scopes)
             );
         } catch (e) {
