@@ -22,13 +22,13 @@
 * [Sign In with Apple](https://developer.apple.com/sign-in-with-apple/) (iOS only)
 * Access to all Login SDK features
 
-## Installation
+## Installation (NS6)
 
 ```
-tns plugin add @klippa/nativescript-login
+tns plugin add @klippa/nativescript-login@^1.0.0
 ```
 
-## Usage
+## Usage (NS6)
 
 ### Facebook Login
 #### Android integration
