@@ -49,14 +49,14 @@ interface GoogleEventData {
     Error: NSError;
 }
 
-@ObjCClass(UIApplicationDelegate)
+@NativeClass()
 class NativeScriptLoginUIApplicationDelegateImpl extends UIResponder implements UIApplicationDelegate {
-    static ObjCProtocols = [UIApplicationDelegate];
+    public static ObjCProtocols = [UIApplicationDelegate];
 }
 
-@ObjCClass(GIDSignInDelegate)
+@NativeClass()
 class NativeScriptLoginGoogleDelegate extends NSObject implements GIDSignInDelegate {
-    static ObjCProtocols = [GIDSignInDelegate];
+    public static ObjCProtocols = [GIDSignInDelegate];
 
     signInDidDisconnectWithUserWithError(signIn: GIDSignIn, user: GIDGoogleUser, error: NSError) {
         googleDidDisconnect.next({
@@ -665,6 +665,7 @@ export function startSignInWithApple(signInWithAppleOptions: SignInWithAppleOpti
 }
 
 // Based on work by Eddy Verbruggen in nativescript-apple-sign-in.
+@NativeClass()
 class ASAuthorizationControllerDelegateImpl extends NSObject /* implements ASAuthorizationControllerDelegate */ {
     public static ObjCProtocols = [];
     private resolve;
