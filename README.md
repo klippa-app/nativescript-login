@@ -138,7 +138,9 @@ wireInFacebookLogin();
 
 // ... Other code/wirings
 
-platformNativeScriptDynamic().bootstrapModule(AppModule);
+runNativeScriptAngularApp({
+  appModuleBootstrap: () => platformNativeScript().bootstrapModule(AppModule),
+});
 ```
 
 NativeScript Vue:
@@ -156,16 +158,8 @@ wireInFacebookLogin();
 // ... Other code/wirings
 
 new Vue({
-
-    template: `
-        <Frame>
-            <Home />
-        </Frame>`,
-
-    components: {
-        Home
-    }
-}).$start();
+  render: (h) => h('frame', [h(Home)]),
+}).$start()
 ```
 
 ---
