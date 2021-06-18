@@ -1,6 +1,6 @@
 <Page
-    navigatingTo="onNavigatingTo"
-    xmlns="http://schemas.nativescript.org/tns.xsd">
+        navigatingTo="onNavigatingTo"
+        xmlns="http://schemas.nativescript.org/tns.xsd">
 
     <ActionBar>
         <Label text="Home"></Label>
@@ -11,6 +11,6 @@
             <Button col="0" text="Google Sign In" tap="{{ googleSignIn }}"/>
             <Button col="1" text="Facebook Login" tap="{{ facebookLogin }}"/>
             <Button col="2" text="Sign In with Apple" tap="{{ signInWithApple }}"/>
-    </GridLayout>
+        </GridLayout>
     </GridLayout>
 </Page>
