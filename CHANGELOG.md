@@ -1,3 +1,9 @@
+## 3.0.0
+
+### Added
+
+- Added NS8 and Angular 12 support. This version does not work on NS7, use major version 2 (^2.0.0) for that.
+
 ## 2.0.0
 
 ### Added

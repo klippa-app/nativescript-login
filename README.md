@@ -25,13 +25,14 @@
 ## NativeScript Version Support
 | NS Version | nativescript-login version | Install command | Docs |
 | ---        | ---                       | ---             | --- |
-| ^7.0.0 | ^2.0.0 | ns plugin add @klippa/nativescript-login | This page |
+| ^8.0.0 | ^3.0.0 | ns plugin add @klippa/nativescript-login@^3.0.0 | This page |
+| ^7.0.0 | ^2.0.0 | ns plugin add @klippa/nativescript-login@^2.0.0 | [Here](https://github.com/klippa-app/nativescript-login/blob/ns-version/7/README.md) |
 | ^6.0.0 | ^1.0.0 | tns plugin add @klippa/nativescript-login@^1.0.0 | [Here](https://github.com/klippa-app/nativescript-login/blob/ns-version/6/README.md) |
 
 ## Installation (NS 7)
 
 ```
-ns plugin add @klippa/nativescript-login
+ns plugin add @klippa/nativescript-login@^3.0.0
 ```
 
 ## Usage
