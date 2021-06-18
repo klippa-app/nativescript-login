@@ -159,7 +159,7 @@ wireInFacebookLogin();
 
 new Vue({
   render: (h) => h('frame', [h(Home)]),
-}).$start()
+}).$start();
 ```
 
 ---
