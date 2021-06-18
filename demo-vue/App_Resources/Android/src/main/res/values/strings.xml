@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Klippa Login Demo</string>
-    <string name="title_activity_kimera">Klippa Login Demo</string>
-    <string name="facebook_app_id">674699273282386</string>
-    <string name="fb_login_protocol_scheme">fb6746992732823861</string>
+    <string name="app_name">Klippa Login Vue Demo</string>
+    <string name="title_activity_kimera">Klippa Login Vue Demo</string>
+    <string name="facebook_app_id">532268007713872</string>
+    <string name="fb_login_protocol_scheme">fb532268007713872</string>
 </resources>

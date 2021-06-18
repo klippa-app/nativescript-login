@@ -50,20 +50,20 @@
             <string>Editor</string>
             <key>CFBundleURLSchemes</key>
             <array>
-                <string>com.googleusercontent.apps.833713350466-k2g6vgq8298t4cd9il97qkjnba3qmrpd</string>
+                <string>com.googleusercontent.apps.833713350466-78r5on6lj7ec2ep6k2bjanp8o7391h83</string>
             </array>
         </dict>
         <dict>
             <key>CFBundleURLSchemes</key>
             <array>
-                <string>fb674699273282386</string>
+                <string>fb532268007713872</string>
             </array>
         </dict>
     </array>
     <key>FacebookAppID</key>
-    <string>674699273282386</string>
+    <string>532268007713872</string>
     <key>FacebookDisplayName</key>
-    <string>NativeScript Login Demo App</string>
+    <string>NativeScript Login Demo Vue App</string>
     <key>LSApplicationQueriesSchemes</key>
     <array>
         <string>fbapi</string>
