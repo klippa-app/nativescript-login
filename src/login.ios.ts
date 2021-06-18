@@ -17,15 +17,12 @@ import {
     SignInWithAppleNameComponents
 } from "./login.common";
 export {
-    GoogleSignInOptions,
     GoogleSignInResult,
     GoogleSignInType,
     GoogleSignInScope,
-    FacebookLoginOptions,
     FacebookLoginResult,
     GoogleSignInResultType,
     FacebookLoginResultType,
-    SignInWithAppleOptions,
     SignInWithAppleResult,
     SignInWithAppleScope,
     SignInWithAppleResultUserDetectionStatus,
@@ -34,6 +31,8 @@ export {
     SignInWithAppleStateResultState,
     SignInWithAppleNameComponents
 } from "./login.common";
+
+export type { GoogleSignInOptions, FacebookLoginOptions, SignInWithAppleOptions } from "./login.common";
 
 import { Device, Application } from "@nativescript/core";
 import { Subject } from "rxjs";

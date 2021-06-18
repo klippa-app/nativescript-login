@@ -35,10 +35,12 @@
     "url": "https://github.com/NativeScript/NativeScript/issues"
   },
   "dependencies": {
+    "@klippa/nativescript-login": "file:../src",
     "@nativescript/core": "~8.0.0",
     "@nativescript/theme": "~3.0.1"
   },
   "devDependencies": {
+    "@nativescript/android": "8.0.0",
     "@nativescript/types": "~8.0.0",
     "@nativescript/webpack": "beta",
     "typescript": "~4.0.0"
