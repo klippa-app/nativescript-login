@@ -248,7 +248,9 @@ wireInGoogleSignIn("{{CLIENT_ID}}");
 
 // ... Other code/wirings
 
-platformNativeScriptDynamic().bootstrapModule(AppModule);
+runNativeScriptAngularApp({
+  appModuleBootstrap: () => platformNativeScript().bootstrapModule(AppModule),
+});
 ```
 
 NativeScript Vue:
@@ -266,15 +268,7 @@ wireInGoogleSignIn("{{CLIENT_ID}}");
 // ... Other code/wirings
 
 new Vue({
-
-    template: `
-        <Frame>
-            <Home />
-        </Frame>`,
-
-    components: {
-        Home
-    }
+  render: (h) => h('frame', [h(Home)]),
 }).$start();
 ```
 
