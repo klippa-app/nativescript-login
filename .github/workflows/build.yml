@@ -50,7 +50,7 @@ jobs:
       - name: Build iOS Demo App
         run: |
           cd demo
-          tns build ios --env.uglify
+          tns build ios --env.uglify --force
 
       - name: Build Android Angular Demo App
         run: |
