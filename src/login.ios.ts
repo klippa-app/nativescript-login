@@ -53,31 +53,12 @@ class NativeScriptLoginUIApplicationDelegateImpl extends UIResponder implements 
     public static ObjCProtocols = [UIApplicationDelegate];
 }
 
-@NativeClass()
-class NativeScriptLoginGoogleDelegate extends NSObject implements GIDSignInDelegate {
-    public static ObjCProtocols = [GIDSignInDelegate];
-
-    signInDidDisconnectWithUserWithError(signIn: GIDSignIn, user: GIDGoogleUser, error: NSError) {
-        googleDidDisconnect.next({
-            SignIn: signIn,
-            User: user,
-            Error: error,
-        });
+let googleSignInClientID = "";
+export function wireInGoogleSignIn(iosClientID?: string) {
+    if (iosClientID) {
+        googleSignInClientID = iosClientID;
     }
 
-    signInDidSignInForUserWithError(signIn: GIDSignIn, user: GIDGoogleUser, error: NSError) {
-        googleDidSignIn.next({
-            SignIn: signIn,
-            User: user,
-            Error: error,
-        });
-    }
-}
-
-const GoogleSignInDelegate = new NativeScriptLoginGoogleDelegate();
-
-export function wireInGoogleSignIn(iosClientID: string) {
-    let oldApplicationDidFinishLaunchingWithOptions;
     let oldApplicationOpenURLOptions;
 
     // Play nice with other plugins by not completely ignoring anything already added to the appdelegate
@@ -86,41 +67,17 @@ export function wireInGoogleSignIn(iosClientID: string) {
         Application.ios.delegate = NativeScriptLoginUIApplicationDelegateImpl;
     } else {
         // We already have a delegate, save the callbacks so we can call it later on.
-        if (Application.ios.delegate.prototype.applicationDidFinishLaunchingWithOptions) {
-            oldApplicationDidFinishLaunchingWithOptions = Application.ios.delegate.prototype.applicationDidFinishLaunchingWithOptions;
-        }
-
         if (Application.ios.delegate.prototype.applicationOpenURLOptions) {
             oldApplicationOpenURLOptions = Application.ios.delegate.prototype.applicationOpenURLOptions;
         }
     }
 
     // Override the applicationDidFinishLaunchingWithOptions in the delegate.
-    Application.ios.delegate.prototype.applicationDidFinishLaunchingWithOptions = (application: UIApplication, launchOptions: NSDictionary<string, any>) => {
-        let addedGIDSignInDelegate = false;
-
-        try {
-            GIDSignIn.sharedInstance().clientID = iosClientID;
-            GIDSignIn.sharedInstance().delegate = GoogleSignInDelegate;
-            addedGIDSignInDelegate = true;
-        } catch (error) {
-            console.log(error);
-        }
-
-        let oldCallback = true;
-        if (oldApplicationDidFinishLaunchingWithOptions) {
-            oldCallback = oldApplicationDidFinishLaunchingWithOptions(application, launchOptions);
-        }
-
-        return addedGIDSignInDelegate || oldCallback;
-    };
-
-    // Override the applicationDidFinishLaunchingWithOptions in the delegate.
     Application.ios.delegate.prototype.applicationOpenURLOptions = (app: UIApplication, url: NSURL, options: NSDictionary<string, any>) => {
         let handledGIDSignIn = false;
 
         try {
-            handledGIDSignIn = GIDSignIn.sharedInstance().handleURL(url);
+            handledGIDSignIn = GIDSignIn.sharedInstance.handleURL(url);
         } catch (error) {
             console.log(error);
         }
@@ -311,19 +268,6 @@ function setAppleNameComponents(components?: NSPersonNameComponents): SignInWith
 
 export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Promise<GoogleSignInResult> {
     return new Promise<GoogleSignInResult>((resolve, reject) => {
-        let googleDidSignInSubscription;
-        let googleDidDisconnectSubscription;
-
-        const cleanupSubscriptions = () => {
-            if (googleDidSignInSubscription) {
-                googleDidSignInSubscription.unsubscribe();
-            }
-
-            if (googleDidDisconnectSubscription) {
-                googleDidDisconnectSubscription.unsubscribe();
-            }
-        };
-
         try {
             if (googleSignInOptions.SignInType === GoogleSignInType.ServerAuthCode && (!googleSignInOptions.ServerClientId || googleSignInOptions.ServerClientId === "")) {
                 reject("Missing ServerClientId while SignInType is ServerAuthCode");
@@ -337,25 +281,31 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
                 reject("Google on iOS requires either RequestProfile to be true or ExtraScopes to be set");
             }
 
-            if (googleSignInOptions.SignInType === GoogleSignInType.ServerAuthCode) {
-                GIDSignIn.sharedInstance().serverClientID = googleSignInOptions.ServerClientId;
-            } else {
-                GIDSignIn.sharedInstance().serverClientID = "";
+            let clientID = googleSignInClientID;
+            let serverClientId = "";
+            let hostedDomain = "";
+            let openIDRealm = "";
+
+
+            if (googleSignInOptions.ClientID) {
+                clientID = googleSignInOptions.ClientID;
             }
 
-            if (googleSignInOptions.RequestProfile) {
-                GIDSignIn.sharedInstance().shouldFetchBasicProfile = googleSignInOptions.RequestProfile;
-            } else {
-                GIDSignIn.sharedInstance().shouldFetchBasicProfile = false;
+            if (googleSignInOptions.SignInType === GoogleSignInType.ServerAuthCode && googleSignInOptions.ServerClientId) {
+                serverClientId = googleSignInOptions.ServerClientId;
             }
 
             if (googleSignInOptions.HostedDomain) {
-                GIDSignIn.sharedInstance().hostedDomain = googleSignInOptions.HostedDomain;
-            } else {
-                GIDSignIn.sharedInstance().hostedDomain = null;
+                hostedDomain = googleSignInOptions.HostedDomain;
             }
 
-            const scopes = new NSMutableArray({
+            if (googleSignInOptions.OpenIDRealm) {
+                openIDRealm = googleSignInOptions.OpenIDRealm;
+            }
+
+            const SignInConfiguration = GIDConfiguration.alloc().initWithClientIDServerClientIDHostedDomainOpenIDRealm(clientID, serverClientId, hostedDomain, openIDRealm);
+
+            const scopes = new NSMutableArray<string>({
                 capacity: (googleSignInOptions.ExtraScopes && googleSignInOptions.ExtraScopes.length ? googleSignInOptions.ExtraScopes.length : 0),
             });
             if (googleSignInOptions.ExtraScopes && googleSignInOptions.ExtraScopes.length > 0) {
@@ -363,75 +313,52 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
                     googleSignInOptions.ExtraScopes.forEach((scope, index) => {
                         const googleSignInScope = GoogleSignInScopeToiOSScope(scope);
                         if (googleSignInScope) {
-                            scopes.addObject(NSString.stringWithString(googleSignInScope));
+                            scopes.addObject(googleSignInScope);
                         }
                     });
                 }
             }
 
-            GIDSignIn.sharedInstance().scopes = scopes;
-
-            googleDidDisconnectSubscription = googleDidDisconnect.subscribe((signInDetails) => {
-                cleanupSubscriptions();
-                if (signInDetails.Error) {
-                    const result = new GoogleSignInResult();
-                    result.ResultType = GoogleSignInResultType.FAILED;
-                    result.ErrorCode = signInDetails.Error.code;
-                    result.ErrorMessage = signInDetails.Error.localizedDescription;
-                    resolve(result);
-                    return;
-                }
-
-                const result = new GoogleSignInResult();
-                result.ResultType = GoogleSignInResultType.FAILED;
-                result.ErrorCode = 0;
-                result.ErrorMessage = "User disconnected";
-                resolve(result);
-                return;
-            });
-
             // Does this trigger googleDidDisconnect?
             if (googleSignInOptions.ForceAccountSelection) {
-                GIDSignIn.sharedInstance().signOut();
+                GIDSignIn.sharedInstance.signOut();
             }
 
-            googleDidSignInSubscription = googleDidSignIn.subscribe((signInDetails) => {
-                cleanupSubscriptions();
-
-                if (signInDetails.Error) {
+            GIDSignIn.sharedInstance.signInWithConfigurationPresentingViewControllerCallback(SignInConfiguration, Application.ios.rootController, (user: GIDGoogleUser, error: NSError) => {
+                if (error) {
                     const result = new GoogleSignInResult();
                     result.ResultType = GoogleSignInResultType.FAILED;
-                    result.ErrorCode = signInDetails.Error.code;
-                    result.ErrorMessage = signInDetails.Error.localizedDescription;
+                    result.ErrorCode = error.code;
+                    result.ErrorMessage = error.localizedDescription;
                     resolve(result);
                     return;
                 }
 
                 const result = new GoogleSignInResult();
                 result.ResultType = GoogleSignInResultType.SUCCESS;
-                result.Id = signInDetails.User.userID;
+                result.Id = user.userID;
 
-                if (signInDetails.User.profile) {
-                    result.GivenName = signInDetails.User.profile.givenName;
-                    result.DisplayName = signInDetails.User.profile.name;
-                    result.FamilyName = signInDetails.User.profile.familyName;
-                    if (signInDetails.User.profile.hasImage) {
-                        result.PhotoUrl = signInDetails.User.profile.imageURLWithDimension(500).toString();
+                if (user.profile) {
+                    result.GivenName = user.profile.givenName;
+                    result.DisplayName = user.profile.name;
+                    result.FamilyName = user.profile.familyName;
+                    if (user.profile.hasImage) {
+                        result.PhotoUrl = user.profile.imageURLWithDimension(500).toString();
                     } else {
                         result.PhotoUrl = "";
                     }
-                    result.Email = signInDetails.User.profile.email;
+                    result.Email = user.profile.email;
                 }
 
-                if (signInDetails.User.authentication) {
-                    result.IdToken = signInDetails.User.authentication.idToken;
+                if (user.authentication) {
+                    result.IdToken = user.authentication.idToken;
                 }
 
-                result.ServerAuthCode = signInDetails.User.serverAuthCode;
+                result.ServerAuthCode = user.serverAuthCode;
                 result.RequestedScopes = new Array<GoogleSignInScope>();
                 result.GrantedScopes = new Array<GoogleSignInScope>();
 
-                const grantedScopes = signInDetails.User.grantedScopes;
+                const grantedScopes = user.grantedScopes;
                 if (grantedScopes && grantedScopes.count > 0) {
                     const grantedScopesSize = grantedScopes.count;
                     for (let i = 0; i < grantedScopesSize; i++) {
@@ -442,17 +369,36 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
                     }
                 }
 
-                resolve(result);
-            });
+                GIDSignIn.sharedInstance.addScopesPresentingViewControllerCallback(scopes, Application.ios.rootController, (user2: GIDGoogleUser, error2: NSError) => {
+                    if (error2) {
+                        const result = new GoogleSignInResult();
+                        result.ResultType = GoogleSignInResultType.FAILED;
+                        result.ErrorCode = error2.code;
+                        result.ErrorMessage = error2.localizedDescription;
+                        resolve(result);
+                        return;
+                    }
 
-            GIDSignIn.sharedInstance().presentingViewController = Application.ios.rootController;
-            GIDSignIn.sharedInstance().signIn();
+                    result.GrantedScopes = new Array<GoogleSignInScope>();
+                    const grantedScopes = user2.grantedScopes;
+                    if (grantedScopes && grantedScopes.count > 0) {
+                        const grantedScopesSize = grantedScopes.count;
+                        for (let i = 0; i < grantedScopesSize; i++) {
+                            const SignInScope = iOSScopeToGoogleSignInScope(grantedScopes.objectAtIndex(i));
+                            if (SignInScope) {
+                                result.GrantedScopes.push(SignInScope);
+                            }
+                        }
+                    }
+
+                    resolve(result);
+                });
+            });
         } catch (e) {
             const result = new GoogleSignInResult();
             result.ResultType = GoogleSignInResultType.FAILED;
             result.ErrorCode = 0;
             result.ErrorMessage = "Plugin error: " + e;
-            cleanupSubscriptions();
             resolve(result);
         }
     });

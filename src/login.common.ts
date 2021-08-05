@@ -114,6 +114,11 @@ export interface GoogleSignInOptions {
     SignInType: GoogleSignInType;
 
     /**
+     * The Client ID of your application.
+     */
+    ClientID?: string;
+
+    /**
      * Required when using login type is ServerAuthCode, or when RequestIdToken is true.
      * The client ID of the server that will need the auth code.
      */
@@ -134,6 +139,11 @@ export interface GoogleSignInOptions {
      * Domain of the user to restrict (for example, "mycollege.edu"),
      */
     HostedDomain?: string;
+
+    /**
+     * The OpenID2 realm of the home server. This allows Google to include the user’s OpenID Identifier in the OpenID Connect ID token.
+     */
+    OpenIDRealm?: string;
 
     /**
      * Specifies an account name on the device that should be used. If this is never called, the client will use the current default account for this application.
@@ -163,7 +173,7 @@ export interface GoogleSignInOptions {
     /**
      * Specifies that user's profile info is requested by your application.
      * Default: true
-     * On iOS you have to either set RequestProfile or give custom scopes.
+     * On iOS this value does not do anything.
      */
     RequestProfile?: boolean;
 
