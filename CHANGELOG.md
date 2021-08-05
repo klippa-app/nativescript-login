@@ -1,3 +1,9 @@
+## 1.1.4
+
+### Fixed
+
+- Lock Google Sign-In iOS SDK to version 5.* to prevent issues with version 6 of the SDK.
+
 ## 1.1.3
 
 ### Fixed
