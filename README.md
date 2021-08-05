@@ -29,7 +29,7 @@
 | ^7.0.0 | ^2.0.0 | ns plugin add @klippa/nativescript-login@^2.0.0 | [Here](https://github.com/klippa-app/nativescript-login/blob/ns-version/7/README.md) |
 | ^6.0.0 | ^1.0.0 | tns plugin add @klippa/nativescript-login@^1.0.0 | [Here](https://github.com/klippa-app/nativescript-login/blob/ns-version/6/README.md) |
 
-## Installation (NS 7)
+## Installation (NS 8)
 
 ```
 ns plugin add @klippa/nativescript-login@^3.0.0
@@ -248,7 +248,9 @@ wireInGoogleSignIn("{{CLIENT_ID}}");
 
 // ... Other code/wirings
 
-platformNativeScriptDynamic().bootstrapModule(AppModule);
+runNativeScriptAngularApp({
+  appModuleBootstrap: () => platformNativeScript().bootstrapModule(AppModule),
+});
 ```
 
 NativeScript Vue:
@@ -266,15 +268,7 @@ wireInGoogleSignIn("{{CLIENT_ID}}");
 // ... Other code/wirings
 
 new Vue({
-
-    template: `
-        <Frame>
-            <Home />
-        </Frame>`,
-
-    components: {
-        Home
-    }
+  render: (h) => h('frame', [h(Home)]),
 }).$start();
 ```
 
