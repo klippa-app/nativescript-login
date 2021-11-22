@@ -1,11 +1,11 @@
 
-declare class FBSDKAccessToken extends NSObject implements FBSDKCopying, NSSecureCoding {
+declare class FBSDKAccessToken extends NSObject implements FBSDKTokenStringProviding, NSCopying, NSObjectProtocol, NSSecureCoding {
 
 	static alloc(): FBSDKAccessToken; // inherited from NSObject
 
 	static new(): FBSDKAccessToken; // inherited from NSObject
 
-	static refreshCurrentAccessToken(completionHandler: (p1: FBSDKGraphRequestConnection, p2: any, p3: NSError) => void): void;
+	static refreshCurrentAccessTokenWithCompletion(completion: (p1: FBSDKGraphRequestConnecting, p2: any, p3: NSError) => void): void;
 
 	readonly appID: string;
 
@@ -33,6 +33,8 @@ declare class FBSDKAccessToken extends NSObject implements FBSDKCopying, NSSecur
 
 	static readonly currentAccessTokenIsActive: boolean;
 
+	static tokenCache: FBSDKTokenCaching;
+
 	readonly debugDescription: string; // inherited from NSObjectProtocol
 
 	readonly description: string; // inherited from NSObjectProtocol
@@ -47,6 +49,8 @@ declare class FBSDKAccessToken extends NSObject implements FBSDKCopying, NSSecur
 
 	static readonly supportsSecureCoding: boolean; // inherited from NSSecureCoding
 
+	static readonly tokenString: string; // inherited from FBSDKTokenStringProviding
+
 	constructor(o: { coder: NSCoder; }); // inherited from NSCoding
 
 	constructor(o: { tokenString: string; permissions: NSArray<string> | string[]; declinedPermissions: NSArray<string> | string[]; expiredPermissions: NSArray<string> | string[]; appID: string; userID: string; expirationDate: Date; refreshDate: Date; dataAccessExpirationDate: Date; });
@@ -54,8 +58,6 @@ declare class FBSDKAccessToken extends NSObject implements FBSDKCopying, NSSecur
 	class(): typeof NSObject;
 
 	conformsToProtocol(aProtocol: any /* Protocol */): boolean;
-
-	copy(): any;
 
 	copyWithZone(zone: interop.Pointer | interop.Reference<any>): any;
 
@@ -98,6 +100,40 @@ declare var FBSDKAccessTokenDidChangeUserIDKey: string;
 
 declare var FBSDKAccessTokenDidExpireKey: string;
 
+interface FBSDKAccessTokenProviding {
+}
+declare var FBSDKAccessTokenProviding: {
+
+	prototype: FBSDKAccessTokenProviding;
+};
+
+interface FBSDKAccessTokenSetting {
+}
+declare var FBSDKAccessTokenSetting: {
+
+	prototype: FBSDKAccessTokenSetting;
+};
+
+declare const enum FBSDKAdvertisingTrackingStatus {
+
+	Allowed = 0,
+
+	Disallowed = 1,
+
+	Unspecified = 2
+}
+
+interface FBSDKAppAvailabilityChecker {
+
+	isFacebookAppInstalled: boolean;
+
+	isMessengerAppInstalled: boolean;
+}
+declare var FBSDKAppAvailabilityChecker: {
+
+	prototype: FBSDKAppAvailabilityChecker;
+};
+
 declare var FBSDKAppEventCity: string;
 
 declare var FBSDKAppEventCountry: string;
@@ -105,6 +141,8 @@ declare var FBSDKAppEventCountry: string;
 declare var FBSDKAppEventDateOfBirth: string;
 
 declare var FBSDKAppEventEmail: string;
+
+declare var FBSDKAppEventExternalId: string;
 
 declare var FBSDKAppEventFirstName: string;
 
@@ -154,11 +192,13 @@ declare var FBSDKAppEventNameSubmitApplication: string;
 
 declare var FBSDKAppEventNameSubscribe: string;
 
-declare var FBSDKAppEventNameSubscriptionHeartbeat: string;
-
 declare var FBSDKAppEventNameUnlockedAchievement: string;
 
 declare var FBSDKAppEventNameViewedContent: string;
+
+declare var FBSDKAppEventParameterEventName: string;
+
+declare var FBSDKAppEventParameterLogTime: string;
 
 declare var FBSDKAppEventParameterNameAdType: string;
 
@@ -242,8 +282,6 @@ declare var FBSDKAppEventZip: string;
 
 declare class FBSDKAppEvents extends NSObject {
 
-	static activateApp(): void;
-
 	static alloc(): FBSDKAppEvents; // inherited from NSObject
 
 	static augmentHybridWKWebView(webView: WKWebView): void;
@@ -268,6 +306,10 @@ declare class FBSDKAppEvents extends NSObject {
 
 	static logEventValueToSumParametersAccessToken(eventName: string, valueToSum: number, parameters: NSDictionary<string, any>, accessToken: FBSDKAccessToken): void;
 
+	static logInternalEventParametersIsImplicitlyLogged(eventName: string, parameters: NSDictionary<string, any>, isImplicitlyLogged: boolean): void;
+
+	static logInternalEventParametersIsImplicitlyLoggedAccessToken(eventName: string, parameters: NSDictionary<string, any>, isImplicitlyLogged: boolean, accessToken: FBSDKAccessToken): void;
+
 	static logProductItemAvailabilityConditionDescriptionImageLinkLinkTitlePriceAmountCurrencyGtinMpnBrandParameters(itemID: string, availability: FBSDKProductAvailability, condition: FBSDKProductCondition, description: string, imageLink: string, link: string, title: string, priceAmount: number, currency: string, gtin: string, mpn: string, brand: string, parameters: NSDictionary<string, any>): void;
 
 	static logPurchaseCurrency(purchaseAmount: number, currency: string): void;
@@ -276,9 +318,9 @@ declare class FBSDKAppEvents extends NSObject {
 
 	static logPurchaseCurrencyParametersAccessToken(purchaseAmount: number, currency: string, parameters: NSDictionary<string, any>, accessToken: FBSDKAccessToken): void;
 
-	static logPushNotificationOpen(payload: NSDictionary<any, any>): void;
+	static logPushNotificationOpen(payload: NSDictionary<string, any>): void;
 
-	static logPushNotificationOpenAction(payload: NSDictionary<any, any>, action: string): void;
+	static logPushNotificationOpenAction(payload: NSDictionary<string, any>, action: string): void;
 
 	static new(): FBSDKAppEvents; // inherited from NSObject
 
@@ -296,13 +338,27 @@ declare class FBSDKAppEvents extends NSObject {
 
 	static setUserEmailFirstNameLastNamePhoneDateOfBirthGenderCityStateZipCountry(email: string, firstName: string, lastName: string, phone: string, dateOfBirth: string, gender: string, city: string, state: string, zip: string, country: string): void;
 
-	static updateUserPropertiesHandler(properties: NSDictionary<string, any>, handler: (p1: FBSDKGraphRequestConnection, p2: any, p3: NSError) => void): void;
+	static readonly anonymousID: string;
 
 	static flushBehavior: FBSDKAppEventsFlushBehavior;
 
 	static loggingOverrideAppID: string;
 
+	static readonly shared: FBSDKAppEvents;
+
 	static userID: string;
+
+	activateApp(): void;
+
+	clearUserData(): void;
+
+	clearUserDataForType(type: string): void;
+
+	getUserData(): string;
+
+	setUserDataForType(data: string, type: string): void;
+
+	setUserEmailFirstNameLastNamePhoneDateOfBirthGenderCityStateZipCountry(email: string, firstName: string, lastName: string, phone: string, dateOfBirth: string, gender: string, city: string, state: string, zip: string, country: string): void;
 }
 
 declare const enum FBSDKAppEventsFlushBehavior {
@@ -352,6 +408,8 @@ declare class FBSDKAppLinkNavigation extends NSObject {
 	static navigationTypeForLink(link: FBSDKAppLink): FBSDKAppLinkNavigationType;
 
 	static navigationWithAppLinkExtrasAppLinkData(appLink: FBSDKAppLink, extras: NSDictionary<string, any>, appLinkData: NSDictionary<string, any>): FBSDKAppLinkNavigation;
+
+	static navigationWithAppLinkExtrasAppLinkDataSettings(appLink: FBSDKAppLink, extras: NSDictionary<string, any>, appLinkData: NSDictionary<string, any>, settings: FBSDKSettingsProtocol): FBSDKAppLinkNavigation;
 
 	static new(): FBSDKAppLinkNavigation; // inherited from NSObject
 
@@ -430,6 +488,17 @@ declare class FBSDKAppLinkResolver extends NSObject implements FBSDKAppLinkResol
 	self(): this;
 }
 
+declare class FBSDKAppLinkResolverRequestBuilder extends NSObject {
+
+	static alloc(): FBSDKAppLinkResolverRequestBuilder; // inherited from NSObject
+
+	static new(): FBSDKAppLinkResolverRequestBuilder; // inherited from NSObject
+
+	getIdiomSpecificField(): string;
+
+	requestForURLs(urls: NSArray<NSURL> | NSURL[]): FBSDKGraphRequest;
+}
+
 interface FBSDKAppLinkResolving extends NSObjectProtocol {
 
 	appLinkFromURLHandler(url: NSURL, handler: (p1: FBSDKAppLink, p2: NSError) => void): void;
@@ -437,118 +506,6 @@ interface FBSDKAppLinkResolving extends NSObjectProtocol {
 declare var FBSDKAppLinkResolving: {
 
 	prototype: FBSDKAppLinkResolving;
-};
-
-declare class FBSDKAppLinkReturnToRefererController extends NSObject implements FBSDKAppLinkReturnToRefererViewDelegate {
-
-	static alloc(): FBSDKAppLinkReturnToRefererController; // inherited from NSObject
-
-	static new(): FBSDKAppLinkReturnToRefererController; // inherited from NSObject
-
-	delegate: FBSDKAppLinkReturnToRefererControllerDelegate;
-
-	view: FBSDKAppLinkReturnToRefererView;
-
-	readonly debugDescription: string; // inherited from NSObjectProtocol
-
-	readonly description: string; // inherited from NSObjectProtocol
-
-	readonly hash: number; // inherited from NSObjectProtocol
-
-	readonly isProxy: boolean; // inherited from NSObjectProtocol
-
-	readonly superclass: typeof NSObject; // inherited from NSObjectProtocol
-
-	readonly  // inherited from NSObjectProtocol
-
-	constructor(o: { forDisplayAboveNavController: UINavigationController; });
-
-	class(): typeof NSObject;
-
-	closeViewAnimated(animated: boolean): void;
-
-	conformsToProtocol(aProtocol: any /* Protocol */): boolean;
-
-	initForDisplayAboveNavController(navController: UINavigationController): this;
-
-	isEqual(object: any): boolean;
-
-	isKindOfClass(aClass: typeof NSObject): boolean;
-
-	isMemberOfClass(aClass: typeof NSObject): boolean;
-
-	performSelector(aSelector: string): any;
-
-	performSelectorWithObject(aSelector: string, object: any): any;
-
-	performSelectorWithObjectWithObject(aSelector: string, object1: any, object2: any): any;
-
-	removeFromNavController(): void;
-
-	respondsToSelector(aSelector: string): boolean;
-
-	retainCount(): number;
-
-	returnToRefererViewDidTapInsideCloseButton(view: FBSDKAppLinkReturnToRefererView): void;
-
-	returnToRefererViewDidTapInsideLinkLink(view: FBSDKAppLinkReturnToRefererView, link: FBSDKAppLink): void;
-
-	self(): this;
-
-	showViewForRefererAppLink(refererAppLink: FBSDKAppLink): void;
-
-	showViewForRefererURL(url: NSURL): void;
-}
-
-interface FBSDKAppLinkReturnToRefererControllerDelegate extends NSObjectProtocol {
-
-	returnToRefererControllerDidNavigateToAppLinkType?(controller: FBSDKAppLinkReturnToRefererController, url: FBSDKAppLink, type: FBSDKAppLinkNavigationType): void;
-
-	returnToRefererControllerWillNavigateToAppLink?(controller: FBSDKAppLinkReturnToRefererController, appLink: FBSDKAppLink): void;
-}
-declare var FBSDKAppLinkReturnToRefererControllerDelegate: {
-
-	prototype: FBSDKAppLinkReturnToRefererControllerDelegate;
-};
-
-declare class FBSDKAppLinkReturnToRefererView extends UIView {
-
-	static alloc(): FBSDKAppLinkReturnToRefererView; // inherited from NSObject
-
-	static appearance(): FBSDKAppLinkReturnToRefererView; // inherited from UIAppearance
-
-	static appearanceForTraitCollection(trait: UITraitCollection): FBSDKAppLinkReturnToRefererView; // inherited from UIAppearance
-
-	static appearanceForTraitCollectionWhenContainedIn(trait: UITraitCollection, ContainerClass: typeof NSObject): FBSDKAppLinkReturnToRefererView; // inherited from UIAppearance
-
-	static appearanceForTraitCollectionWhenContainedInInstancesOfClasses(trait: UITraitCollection, containerTypes: NSArray<typeof NSObject> | typeof NSObject[]): FBSDKAppLinkReturnToRefererView; // inherited from UIAppearance
-
-	static appearanceWhenContainedIn(ContainerClass: typeof NSObject): FBSDKAppLinkReturnToRefererView; // inherited from UIAppearance
-
-	static appearanceWhenContainedInInstancesOfClasses(containerTypes: NSArray<typeof NSObject> | typeof NSObject[]): FBSDKAppLinkReturnToRefererView; // inherited from UIAppearance
-
-	static new(): FBSDKAppLinkReturnToRefererView; // inherited from NSObject
-
-	closed: boolean;
-
-	delegate: FBSDKAppLinkReturnToRefererViewDelegate;
-
-	includeStatusBarInSize: FBSDKIncludeStatusBarInSize;
-
-	refererAppLink: FBSDKAppLink;
-
-	textColor: UIColor;
-}
-
-interface FBSDKAppLinkReturnToRefererViewDelegate extends NSObjectProtocol {
-
-	returnToRefererViewDidTapInsideCloseButton(view: FBSDKAppLinkReturnToRefererView): void;
-
-	returnToRefererViewDidTapInsideLinkLink(view: FBSDKAppLinkReturnToRefererView, link: FBSDKAppLink): void;
-}
-declare var FBSDKAppLinkReturnToRefererViewDelegate: {
-
-	prototype: FBSDKAppLinkReturnToRefererViewDelegate;
 };
 
 declare class FBSDKAppLinkTarget extends NSObject {
@@ -581,24 +538,422 @@ declare class FBSDKAppLinkUtility extends NSObject {
 
 declare var FBSDKAppLinkVersion: string;
 
+interface FBSDKAppURLSchemeProviding {
+
+	appURLScheme(): string;
+
+	validateURLSchemes(): void;
+}
+declare var FBSDKAppURLSchemeProviding: {
+
+	prototype: FBSDKAppURLSchemeProviding;
+};
+
 declare class FBSDKApplicationDelegate extends NSObject {
 
 	static alloc(): FBSDKApplicationDelegate; // inherited from NSObject
 
-	static initializeSDK(launchOptions: NSDictionary<string, any>): void;
-
 	static new(): FBSDKApplicationDelegate; // inherited from NSObject
 
 	static readonly sharedInstance: FBSDKApplicationDelegate;
+
+	addObserver(observer: FBSDKApplicationObserving): void;
 
 	applicationDidFinishLaunchingWithOptions(application: UIApplication, launchOptions: NSDictionary<string, any>): boolean;
 
 	applicationOpenURLOptions(application: UIApplication, url: NSURL, options: NSDictionary<string, any>): boolean;
 
 	applicationOpenURLSourceApplicationAnnotation(application: UIApplication, url: NSURL, sourceApplication: string, annotation: any): boolean;
+
+	initializeSDK(): void;
+
+	removeObserver(observer: FBSDKApplicationObserving): void;
 }
 
-declare class FBSDKButton extends UIButton {
+interface FBSDKApplicationObserving extends NSObjectProtocol {
+
+	applicationDidBecomeActive?(application: UIApplication): void;
+
+	applicationDidEnterBackground?(application: UIApplication): void;
+
+	applicationDidFinishLaunchingWithOptions?(application: UIApplication, launchOptions: NSDictionary<string, any>): boolean;
+
+	applicationOpenURLSourceApplicationAnnotation?(application: UIApplication, url: NSURL, sourceApplication: string, annotation: any): boolean;
+
+	applicationWillResignActive?(application: UIApplication): void;
+}
+declare var FBSDKApplicationObserving: {
+
+	prototype: FBSDKApplicationObserving;
+};
+
+declare class FBSDKAuthenticationToken extends NSObject implements FBSDKAuthenticationTokenProviding, FBSDKAuthenticationTokenSetting, NSCopying, NSObjectProtocol, NSSecureCoding {
+
+	static alloc(): FBSDKAuthenticationToken; // inherited from NSObject
+
+	static new(): FBSDKAuthenticationToken; // inherited from NSObject
+
+	readonly graphDomain: string;
+
+	readonly nonce: string;
+
+	readonly tokenString: string;
+
+	readonly debugDescription: string; // inherited from NSObjectProtocol
+
+	readonly description: string; // inherited from NSObjectProtocol
+
+	readonly hash: number; // inherited from NSObjectProtocol
+
+	readonly isProxy: boolean; // inherited from NSObjectProtocol
+
+	readonly superclass: typeof NSObject; // inherited from NSObjectProtocol
+
+	readonly  // inherited from NSObjectProtocol
+
+	static readonly currentAuthenticationToken: FBSDKAuthenticationToken; // inherited from FBSDKAuthenticationTokenProviding
+
+	static readonly supportsSecureCoding: boolean; // inherited from NSSecureCoding
+
+	static tokenCache: FBSDKTokenCaching; // inherited from FBSDKAuthenticationTokenProviding
+
+	constructor(o: { coder: NSCoder; }); // inherited from NSCoding
+
+	claims(): FBSDKAuthenticationTokenClaims;
+
+	class(): typeof NSObject;
+
+	conformsToProtocol(aProtocol: any /* Protocol */): boolean;
+
+	copyWithZone(zone: interop.Pointer | interop.Reference<any>): any;
+
+	encodeWithCoder(coder: NSCoder): void;
+
+	initWithCoder(coder: NSCoder): this;
+
+	isEqual(object: any): boolean;
+
+	isKindOfClass(aClass: typeof NSObject): boolean;
+
+	isMemberOfClass(aClass: typeof NSObject): boolean;
+
+	performSelector(aSelector: string): any;
+
+	performSelectorWithObject(aSelector: string, object: any): any;
+
+	performSelectorWithObjectWithObject(aSelector: string, object1: any, object2: any): any;
+
+	respondsToSelector(aSelector: string): boolean;
+
+	retainCount(): number;
+
+	self(): this;
+}
+
+declare class FBSDKAuthenticationTokenClaims extends NSObject {
+
+	static alloc(): FBSDKAuthenticationTokenClaims; // inherited from NSObject
+
+	static new(): FBSDKAuthenticationTokenClaims; // inherited from NSObject
+
+	readonly aud: string;
+
+	readonly email: string;
+
+	readonly exp: number;
+
+	readonly familyName: string;
+
+	readonly givenName: string;
+
+	readonly iat: number;
+
+	readonly iss: string;
+
+	readonly jti: string;
+
+	readonly middleName: string;
+
+	readonly name: string;
+
+	readonly nonce: string;
+
+	readonly picture: string;
+
+	readonly sub: string;
+
+	readonly userAgeRange: NSDictionary<string, number>;
+
+	readonly userBirthday: string;
+
+	readonly userFriends: NSArray<string>;
+
+	readonly userGender: string;
+
+	readonly userHometown: NSDictionary<string, string>;
+
+	readonly userLink: string;
+
+	readonly userLocation: NSDictionary<string, string>;
+}
+
+interface FBSDKAuthenticationTokenProviding {
+}
+declare var FBSDKAuthenticationTokenProviding: {
+
+	prototype: FBSDKAuthenticationTokenProviding;
+};
+
+interface FBSDKAuthenticationTokenSetting {
+}
+declare var FBSDKAuthenticationTokenSetting: {
+
+	prototype: FBSDKAuthenticationTokenSetting;
+};
+
+declare class FBSDKBridgeAPI extends NSObject implements FBSDKBridgeAPIRequestOpening, FBSDKURLOpener {
+
+	static alloc(): FBSDKBridgeAPI; // inherited from NSObject
+
+	static new(): FBSDKBridgeAPI; // inherited from NSObject
+
+	readonly active: boolean;
+
+	static readonly sharedInstance: FBSDKBridgeAPI;
+
+	readonly debugDescription: string; // inherited from NSObjectProtocol
+
+	readonly description: string; // inherited from NSObjectProtocol
+
+	readonly hash: number; // inherited from NSObjectProtocol
+
+	readonly isProxy: boolean; // inherited from NSObjectProtocol
+
+	readonly superclass: typeof NSObject; // inherited from NSObjectProtocol
+
+	readonly  // inherited from NSObjectProtocol
+
+	constructor(o: { processInfo: any; logger: FBSDKLogger; urlOpener: any; bridgeAPIResponseFactory: any; frameworkLoader: any; appURLSchemeProvider: FBSDKAppURLSchemeProviding; });
+
+	class(): typeof NSObject;
+
+	conformsToProtocol(aProtocol: any /* Protocol */): boolean;
+
+	initWithProcessInfoLoggerUrlOpenerBridgeAPIResponseFactoryFrameworkLoaderAppURLSchemeProvider(processInfo: any, logger: FBSDKLogger, urlOpener: any, bridgeAPIResponseFactory: any, frameworkLoader: any, appURLSchemeProvider: FBSDKAppURLSchemeProviding): this;
+
+	isEqual(object: any): boolean;
+
+	isKindOfClass(aClass: typeof NSObject): boolean;
+
+	isMemberOfClass(aClass: typeof NSObject): boolean;
+
+	openBridgeAPIRequestUseSafariViewControllerFromViewControllerCompletionBlock(request: NSObject, useSafariViewController: boolean, fromViewController: UIViewController, completionBlock: (p1: FBSDKBridgeAPIResponse) => void): void;
+
+	openURLSenderHandler(url: NSURL, sender: FBSDKURLOpening, handler: (p1: boolean, p2: NSError) => void): void;
+
+	openURLWithSafariViewControllerSenderFromViewControllerHandler(url: NSURL, sender: FBSDKURLOpening, fromViewController: UIViewController, handler: (p1: boolean, p2: NSError) => void): void;
+
+	performSelector(aSelector: string): any;
+
+	performSelectorWithObject(aSelector: string, object: any): any;
+
+	performSelectorWithObjectWithObject(aSelector: string, object1: any, object2: any): any;
+
+	respondsToSelector(aSelector: string): boolean;
+
+	retainCount(): number;
+
+	self(): this;
+
+	sessionCompletionHandler(): (p1: NSURL, p2: NSError) => void;
+}
+
+declare var FBSDKBridgeAPIAppIDKey: string;
+
+interface FBSDKBridgeAPIProtocol extends NSObjectProtocol {
+
+	requestURLWithActionIDSchemeMethodNameMethodVersionParametersError(actionID: string, scheme: string, methodName: string, methodVersion: string, parameters: NSDictionary<string, any>): NSURL;
+
+	responseParametersForActionIDQueryParametersCancelledError(actionID: string, queryParameters: NSDictionary<string, any>, cancelledRef: interop.Pointer | interop.Reference<boolean>): NSDictionary<string, any>;
+}
+declare var FBSDKBridgeAPIProtocol: {
+
+	prototype: FBSDKBridgeAPIProtocol;
+};
+
+declare const enum FBSDKBridgeAPIProtocolType {
+
+	Native = 0,
+
+	Web = 1
+}
+
+declare class FBSDKBridgeAPIRequest extends NSObject implements FBSDKBridgeAPIRequestProtocol, NSCopying {
+
+	static alloc(): FBSDKBridgeAPIRequest; // inherited from NSObject
+
+	static bridgeAPIRequestWithProtocolTypeSchemeMethodNameMethodVersionParametersUserInfo(protocolType: FBSDKBridgeAPIProtocolType, scheme: string, methodName: string, methodVersion: string, parameters: NSDictionary<string, any>, userInfo: NSDictionary<string, any>): FBSDKBridgeAPIRequest;
+
+	static new(): FBSDKBridgeAPIRequest; // inherited from NSObject
+
+	readonly methodVersion: string;
+
+	readonly parameters: NSDictionary<string, any>;
+
+	readonly userInfo: NSDictionary<string, any>;
+
+	readonly actionID: string; // inherited from FBSDKBridgeAPIRequestProtocol
+
+	readonly debugDescription: string; // inherited from NSObjectProtocol
+
+	readonly description: string; // inherited from NSObjectProtocol
+
+	readonly hash: number; // inherited from NSObjectProtocol
+
+	readonly isProxy: boolean; // inherited from NSObjectProtocol
+
+	readonly methodName: string; // inherited from FBSDKBridgeAPIRequestProtocol
+
+	readonly protocol: FBSDKBridgeAPIProtocol; // inherited from FBSDKBridgeAPIRequestProtocol
+
+	readonly protocolType: FBSDKBridgeAPIProtocolType; // inherited from FBSDKBridgeAPIRequestProtocol
+
+	readonly scheme: string; // inherited from FBSDKBridgeAPIRequestProtocol
+
+	readonly superclass: typeof NSObject; // inherited from NSObjectProtocol
+
+	readonly  // inherited from NSObjectProtocol
+
+	class(): typeof NSObject;
+
+	conformsToProtocol(aProtocol: any /* Protocol */): boolean;
+
+	copyWithZone(zone: interop.Pointer | interop.Reference<any>): any;
+
+	isEqual(object: any): boolean;
+
+	isKindOfClass(aClass: typeof NSObject): boolean;
+
+	isMemberOfClass(aClass: typeof NSObject): boolean;
+
+	performSelector(aSelector: string): any;
+
+	performSelectorWithObject(aSelector: string, object: any): any;
+
+	performSelectorWithObjectWithObject(aSelector: string, object1: any, object2: any): any;
+
+	requestURL(): NSURL;
+
+	respondsToSelector(aSelector: string): boolean;
+
+	retainCount(): number;
+
+	self(): this;
+}
+
+interface FBSDKBridgeAPIRequestCreating {
+
+	bridgeAPIRequestWithProtocolTypeSchemeMethodNameMethodVersionParametersUserInfo(protocolType: FBSDKBridgeAPIProtocolType, scheme: string, methodName: string, methodVersion: string, parameters: NSDictionary<string, any>, userInfo: NSDictionary<string, any>): FBSDKBridgeAPIRequestProtocol;
+}
+declare var FBSDKBridgeAPIRequestCreating: {
+
+	prototype: FBSDKBridgeAPIRequestCreating;
+};
+
+interface FBSDKBridgeAPIRequestOpening extends NSObjectProtocol {
+
+	openBridgeAPIRequestUseSafariViewControllerFromViewControllerCompletionBlock(request: NSObject, useSafariViewController: boolean, fromViewController: UIViewController, completionBlock: (p1: FBSDKBridgeAPIResponse) => void): void;
+
+	openURLSenderHandler(url: NSURL, sender: FBSDKURLOpening, handler: (p1: boolean, p2: NSError) => void): void;
+
+	openURLWithSafariViewControllerSenderFromViewControllerHandler(url: NSURL, sender: FBSDKURLOpening, fromViewController: UIViewController, handler: (p1: boolean, p2: NSError) => void): void;
+}
+declare var FBSDKBridgeAPIRequestOpening: {
+
+	prototype: FBSDKBridgeAPIRequestOpening;
+};
+
+interface FBSDKBridgeAPIRequestProtocol extends NSCopying, NSObjectProtocol {
+
+	actionID: string;
+
+	methodName: string;
+
+	protocol: FBSDKBridgeAPIProtocol;
+
+	protocolType: FBSDKBridgeAPIProtocolType;
+
+	scheme: string;
+
+	requestURL(): NSURL;
+}
+declare var FBSDKBridgeAPIRequestProtocol: {
+
+	prototype: FBSDKBridgeAPIRequestProtocol;
+};
+
+declare class FBSDKBridgeAPIResponse extends NSObject implements NSCopying, NSObjectProtocol {
+
+	static alloc(): FBSDKBridgeAPIResponse; // inherited from NSObject
+
+	static bridgeAPIResponseCancelledWithRequest(request: NSObject): FBSDKBridgeAPIResponse;
+
+	static bridgeAPIResponseWithRequestError(request: NSObject, error: NSError): FBSDKBridgeAPIResponse;
+
+	static bridgeAPIResponseWithRequestResponseURLSourceApplicationError(request: NSObject, responseURL: NSURL, sourceApplication: string): FBSDKBridgeAPIResponse;
+
+	static new(): FBSDKBridgeAPIResponse; // inherited from NSObject
+
+	readonly cancelled: boolean;
+
+	readonly error: NSError;
+
+	readonly request: NSObject;
+
+	readonly responseParameters: NSDictionary<string, any>;
+
+	readonly debugDescription: string; // inherited from NSObjectProtocol
+
+	readonly description: string; // inherited from NSObjectProtocol
+
+	readonly hash: number; // inherited from NSObjectProtocol
+
+	readonly isProxy: boolean; // inherited from NSObjectProtocol
+
+	readonly superclass: typeof NSObject; // inherited from NSObjectProtocol
+
+	readonly  // inherited from NSObjectProtocol
+
+	class(): typeof NSObject;
+
+	conformsToProtocol(aProtocol: any /* Protocol */): boolean;
+
+	copyWithZone(zone: interop.Pointer | interop.Reference<any>): any;
+
+	isEqual(object: any): boolean;
+
+	isKindOfClass(aClass: typeof NSObject): boolean;
+
+	isMemberOfClass(aClass: typeof NSObject): boolean;
+
+	performSelector(aSelector: string): any;
+
+	performSelectorWithObject(aSelector: string, object: any): any;
+
+	performSelectorWithObjectWithObject(aSelector: string, object1: any, object2: any): any;
+
+	respondsToSelector(aSelector: string): boolean;
+
+	retainCount(): number;
+
+	self(): this;
+}
+
+declare var FBSDKBridgeAPISchemeSuffixKey: string;
+
+declare var FBSDKBridgeAPIVersionKey: string;
+
+declare class FBSDKButton extends FBSDKImpressionTrackingButton {
 
 	static alloc(): FBSDKButton; // inherited from NSObject
 
@@ -614,21 +969,49 @@ declare class FBSDKButton extends UIButton {
 
 	static appearanceWhenContainedInInstancesOfClasses(containerTypes: NSArray<typeof NSObject> | typeof NSObject[]): FBSDKButton; // inherited from UIAppearance
 
+	static buttonWithConfigurationPrimaryAction(configuration: UIButtonConfiguration, primaryAction: UIAction): FBSDKButton; // inherited from UIButton
+
 	static buttonWithType(buttonType: UIButtonType): FBSDKButton; // inherited from UIButton
+
+	static buttonWithTypePrimaryAction(buttonType: UIButtonType, primaryAction: UIAction): FBSDKButton; // inherited from UIButton
 
 	static new(): FBSDKButton; // inherited from NSObject
 
 	static systemButtonWithImageTargetAction(image: UIImage, target: any, action: string): FBSDKButton; // inherited from UIButton
+
+	static systemButtonWithPrimaryAction(primaryAction: UIAction): FBSDKButton; // inherited from UIButton
+
+	readonly implicitlyDisabled: boolean;
+
+	checkImplicitlyDisabled(): void;
+
+	configureWithIconTitleBackgroundColorHighlightedColor(icon: FBSDKIcon, title: string, backgroundColor: UIColor, highlightedColor: UIColor): void;
+
+	configureWithIconTitleBackgroundColorHighlightedColorSelectedTitleSelectedIconSelectedColorSelectedHighlightedColor(icon: FBSDKIcon, title: string, backgroundColor: UIColor, highlightedColor: UIColor, selectedTitle: string, selectedIcon: FBSDKIcon, selectedColor: UIColor, selectedHighlightedColor: UIColor): void;
+
+	defaultBackgroundColor(): UIColor;
+
+	logTapEventWithEventNameParameters(eventName: string, parameters: NSDictionary<string, any>): void;
+
+	sizeThatFitsTitle(size: CGSize, title: string): CGSize;
+
+	textSizeForTextFontConstrainedSizeLineBreakMode(text: string, font: UIFont, constrainedSize: CGSize, lineBreakMode: NSLineBreakMode): CGSize;
 }
 
-interface FBSDKCopying extends NSCopying, NSObjectProtocol {
+interface FBSDKButtonImpressionTracking extends NSObjectProtocol {
 
-	copy(): any;
+	analyticsParameters: NSDictionary<string, any>;
+
+	impressionTrackingEventName: string;
+
+	impressionTrackingIdentifier: string;
 }
-declare var FBSDKCopying: {
+declare var FBSDKButtonImpressionTracking: {
 
-	prototype: FBSDKCopying;
+	prototype: FBSDKButtonImpressionTracking;
 };
+
+declare var FBSDKCATransform3DIdentity: CATransform3D;
 
 declare const enum FBSDKCoreError {
 
@@ -656,12 +1039,54 @@ declare const enum FBSDKCoreError {
 
 	ErrorAppVersionUnsupported = 11,
 
-	ErrorBrowserUnavailable = 12
+	ErrorBrowserUnavailable = 12,
+
+	ErrorBridgeAPIInterruption = 13,
+
+	ErrorBridgeAPIResponse = 14
 }
 
-declare var FBSDKCoreKitVersionNumber: number;
+declare var FBSDKDialogConfigurationNameMessage: string;
 
-declare var FBSDKCoreKitVersionString: interop.Reference<number>;
+declare var FBSDKDialogConfigurationNameShare: string;
+
+declare class FBSDKDynamicFrameworkLoaderProxy extends NSObject {
+
+	static alloc(): FBSDKDynamicFrameworkLoaderProxy; // inherited from NSObject
+
+	static loadkSecAttrAccessibleAfterFirstUnlockThisDeviceOnly(): any;
+
+	static new(): FBSDKDynamicFrameworkLoaderProxy; // inherited from NSObject
+}
+
+declare class FBSDKError extends NSObject {
+
+	static alloc(): FBSDKError; // inherited from NSObject
+
+	static errorWithCodeMessage(code: number, message: string): NSError;
+
+	static errorWithCodeMessageUnderlyingError(code: number, message: string, underlyingError: NSError): NSError;
+
+	static errorWithDomainCodeMessage(domain: string, code: number, message: string): NSError;
+
+	static errorWithDomainCodeMessageUnderlyingError(domain: string, code: number, message: string, underlyingError: NSError): NSError;
+
+	static errorWithDomainCodeUserInfoMessageUnderlyingError(domain: string, code: number, userInfo: NSDictionary<string, any>, message: string, underlyingError: NSError): NSError;
+
+	static invalidArgumentErrorWithDomainNameValueMessage(domain: string, name: string, value: any, message: string): NSError;
+
+	static invalidArgumentErrorWithDomainNameValueMessageUnderlyingError(domain: string, name: string, value: any, message: string, underlyingError: NSError): NSError;
+
+	static invalidArgumentErrorWithNameValueMessage(name: string, value: any, message: string): NSError;
+
+	static isNetworkError(error: NSError): boolean;
+
+	static new(): FBSDKError; // inherited from NSObject
+
+	static requiredArgumentErrorWithDomainNameMessage(domain: string, name: string, message: string): NSError;
+
+	static unknownErrorWithMessage(message: string): NSError;
+}
 
 declare var FBSDKErrorArgumentCollectionKey: string;
 
@@ -679,11 +1104,69 @@ declare var FBSDKErrorLocalizedTitleKey: string;
 
 interface FBSDKErrorRecoveryAttempting extends NSObjectProtocol {
 
-	attemptRecoveryFromErrorOptionIndexDelegateDidRecoverSelectorContextInfo(error: NSError, recoveryOptionIndex: number, delegate: any, didRecoverSelector: string, contextInfo: interop.Pointer | interop.Reference<any>): void;
+	attemptRecoveryFromErrorOptionIndexCompletionHandler(error: NSError, recoveryOptionIndex: number, completionHandler: (p1: boolean) => void): void;
 }
 declare var FBSDKErrorRecoveryAttempting: {
 
 	prototype: FBSDKErrorRecoveryAttempting;
+};
+
+declare const enum FBSDKFeature {
+
+	None = 0,
+
+	Core = 16777216,
+
+	AppEvents = 16842752,
+
+	CodelessEvents = 16843008,
+
+	RestrictiveDataFiltering = 16843264,
+
+	AAM = 16843520,
+
+	PrivacyProtection = 16843776,
+
+	SuggestedEvents = 16843777,
+
+	IntelligentIntegrity = 16843778,
+
+	ModelRequest = 16843779,
+
+	EventDeactivation = 16844032,
+
+	SKAdNetwork = 16844288,
+
+	SKAdNetworkConversionValue = 16844289,
+
+	ATELogging = 16844544,
+
+	AEM = 16844800,
+
+	Instrument = 16908288,
+
+	CrashReport = 16908544,
+
+	CrashShield = 16908545,
+
+	ErrorReport = 16908800,
+
+	Login = 33554432,
+
+	Share = 50331648,
+
+	GamingServices = 67108864
+}
+
+interface FBSDKFeatureChecking {
+
+	checkFeatureCompletionBlock(feature: FBSDKFeature, completionBlock: (p1: boolean) => void): void;
+
+	isEnabled(feature: FBSDKFeature): boolean;
+}
+declare var FBSDKFeatureChecking: {
+
+	prototype: FBSDKFeatureChecking;
 };
 
 declare class FBSDKGraphErrorRecoveryProcessor extends NSObject {
@@ -692,11 +1175,11 @@ declare class FBSDKGraphErrorRecoveryProcessor extends NSObject {
 
 	static new(): FBSDKGraphErrorRecoveryProcessor; // inherited from NSObject
 
-	readonly delegate: FBSDKGraphErrorRecoveryProcessorDelegate;
+	constructor(o: { accessTokenString: string; });
 
-	didPresentErrorWithRecoveryContextInfo(didRecover: boolean, contextInfo: interop.Pointer | interop.Reference<any>): void;
+	initWithAccessTokenString(accessTokenString: string): this;
 
-	processErrorRequestDelegate(error: NSError, request: FBSDKGraphRequest, delegate: FBSDKGraphErrorRecoveryProcessorDelegate): boolean;
+	processErrorRequestDelegate(error: NSError, request: FBSDKGraphRequestProtocol, delegate: FBSDKGraphErrorRecoveryProcessorDelegate): boolean;
 }
 
 interface FBSDKGraphErrorRecoveryProcessorDelegate extends NSObjectProtocol {
@@ -710,21 +1193,27 @@ declare var FBSDKGraphErrorRecoveryProcessorDelegate: {
 	prototype: FBSDKGraphErrorRecoveryProcessorDelegate;
 };
 
-declare class FBSDKGraphRequest extends NSObject {
+declare class FBSDKGraphRequest extends NSObject implements FBSDKGraphRequestProtocol {
 
 	static alloc(): FBSDKGraphRequest; // inherited from NSObject
 
 	static new(): FBSDKGraphRequest; // inherited from NSObject
 
-	readonly HTTPMethod: string;
+	readonly HTTPMethod: string; // inherited from FBSDKGraphRequestProtocol
 
-	readonly graphPath: string;
+	readonly flags: FBSDKGraphRequestFlags; // inherited from FBSDKGraphRequestProtocol
 
-	parameters: NSDictionary<string, any>;
+	graphErrorRecoveryDisabled: boolean; // inherited from FBSDKGraphRequestProtocol
 
-	readonly tokenString: string;
+	readonly graphPath: string; // inherited from FBSDKGraphRequestProtocol
 
-	readonly version: string;
+	readonly hasAttachments: boolean; // inherited from FBSDKGraphRequestProtocol
+
+	parameters: NSDictionary<string, any>; // inherited from FBSDKGraphRequestProtocol
+
+	readonly tokenString: string; // inherited from FBSDKGraphRequestProtocol
+
+	readonly version: string; // inherited from FBSDKGraphRequestProtocol
 
 	constructor(o: { graphPath: string; });
 
@@ -732,9 +1221,15 @@ declare class FBSDKGraphRequest extends NSObject {
 
 	constructor(o: { graphPath: string; parameters: NSDictionary<string, any>; });
 
+	constructor(o: { graphPath: string; parameters: NSDictionary<string, any>; flags: FBSDKGraphRequestFlags; });
+
 	constructor(o: { graphPath: string; parameters: NSDictionary<string, any>; HTTPMethod: string; });
 
+	constructor(o: { graphPath: string; parameters: NSDictionary<string, any>; tokenString: string; HTTPMethod: string; flags: FBSDKGraphRequestFlags; });
+
 	constructor(o: { graphPath: string; parameters: NSDictionary<string, any>; tokenString: string; version: string; HTTPMethod: string; });
+
+	formattedDescription(): string;
 
 	initWithGraphPath(graphPath: string): this;
 
@@ -742,36 +1237,57 @@ declare class FBSDKGraphRequest extends NSObject {
 
 	initWithGraphPathParameters(graphPath: string, parameters: NSDictionary<string, any>): this;
 
+	initWithGraphPathParametersFlags(graphPath: string, parameters: NSDictionary<string, any>, requestFlags: FBSDKGraphRequestFlags): this;
+
 	initWithGraphPathParametersHTTPMethod(graphPath: string, parameters: NSDictionary<string, any>, method: string): this;
+
+	initWithGraphPathParametersTokenStringHTTPMethodFlags(graphPath: string, parameters: NSDictionary<string, any>, tokenString: string, HTTPMethod: string, flags: FBSDKGraphRequestFlags): this;
 
 	initWithGraphPathParametersTokenStringVersionHTTPMethod(graphPath: string, parameters: NSDictionary<string, any>, tokenString: string, version: string, method: string): this;
 
 	setGraphErrorRecoveryDisabled(disable: boolean): void;
 
-	startWithCompletionHandler(handler: (p1: FBSDKGraphRequestConnection, p2: any, p3: NSError) => void): FBSDKGraphRequestConnection;
+	startWithCompletion(completion: (p1: FBSDKGraphRequestConnecting, p2: any, p3: NSError) => void): FBSDKGraphRequestConnecting;
 }
 
-declare class FBSDKGraphRequestConnection extends NSObject {
+interface FBSDKGraphRequestConnecting {
+
+	delegate: FBSDKGraphRequestConnectionDelegate;
+
+	timeout: number;
+
+	addRequestCompletion(request: FBSDKGraphRequestProtocol, handler: (p1: FBSDKGraphRequestConnecting, p2: any, p3: NSError) => void): void;
+
+	cancel(): void;
+
+	start(): void;
+}
+declare var FBSDKGraphRequestConnecting: {
+
+	prototype: FBSDKGraphRequestConnecting;
+};
+
+declare class FBSDKGraphRequestConnection extends NSObject implements FBSDKGraphRequestConnecting {
 
 	static alloc(): FBSDKGraphRequestConnection; // inherited from NSObject
 
 	static new(): FBSDKGraphRequestConnection; // inherited from NSObject
 
-	delegate: FBSDKGraphRequestConnectionDelegate;
-
 	delegateQueue: NSOperationQueue;
-
-	timeout: number;
 
 	readonly urlResponse: NSHTTPURLResponse;
 
 	static defaultConnectionTimeout: number;
 
-	addRequestBatchEntryNameCompletionHandler(request: FBSDKGraphRequest, name: string, handler: (p1: FBSDKGraphRequestConnection, p2: any, p3: NSError) => void): void;
+	delegate: FBSDKGraphRequestConnectionDelegate; // inherited from FBSDKGraphRequestConnecting
 
-	addRequestBatchParametersCompletionHandler(request: FBSDKGraphRequest, batchParameters: NSDictionary<string, any>, handler: (p1: FBSDKGraphRequestConnection, p2: any, p3: NSError) => void): void;
+	timeout: number; // inherited from FBSDKGraphRequestConnecting
 
-	addRequestCompletionHandler(request: FBSDKGraphRequest, handler: (p1: FBSDKGraphRequestConnection, p2: any, p3: NSError) => void): void;
+	addRequestCompletion(request: FBSDKGraphRequestProtocol, handler: (p1: FBSDKGraphRequestConnecting, p2: any, p3: NSError) => void): void;
+
+	addRequestNameCompletion(request: FBSDKGraphRequestProtocol, name: string, completion: (p1: FBSDKGraphRequestConnecting, p2: any, p3: NSError) => void): void;
+
+	addRequestParametersCompletion(request: FBSDKGraphRequestProtocol, parameters: NSDictionary<string, any>, completion: (p1: FBSDKGraphRequestConnecting, p2: any, p3: NSError) => void): void;
 
 	cancel(): void;
 
@@ -782,17 +1298,35 @@ declare class FBSDKGraphRequestConnection extends NSObject {
 
 interface FBSDKGraphRequestConnectionDelegate extends NSObjectProtocol {
 
-	requestConnectionDidFailWithError?(connection: FBSDKGraphRequestConnection, error: NSError): void;
+	requestConnectionDidFailWithError?(connection: FBSDKGraphRequestConnecting, error: NSError): void;
 
-	requestConnectionDidFinishLoading?(connection: FBSDKGraphRequestConnection): void;
+	requestConnectionDidFinishLoading?(connection: FBSDKGraphRequestConnecting): void;
 
-	requestConnectionDidSendBodyDataTotalBytesWrittenTotalBytesExpectedToWrite?(connection: FBSDKGraphRequestConnection, bytesWritten: number, totalBytesWritten: number, totalBytesExpectedToWrite: number): void;
+	requestConnectionDidSendBodyDataTotalBytesWrittenTotalBytesExpectedToWrite?(connection: FBSDKGraphRequestConnecting, bytesWritten: number, totalBytesWritten: number, totalBytesExpectedToWrite: number): void;
 
-	requestConnectionWillBeginLoading?(connection: FBSDKGraphRequestConnection): void;
+	requestConnectionWillBeginLoading?(connection: FBSDKGraphRequestConnecting): void;
 }
 declare var FBSDKGraphRequestConnectionDelegate: {
 
 	prototype: FBSDKGraphRequestConnectionDelegate;
+};
+
+declare class FBSDKGraphRequestConnectionFactory extends NSObject implements FBSDKGraphRequestConnectionFactoryProtocol {
+
+	static alloc(): FBSDKGraphRequestConnectionFactory; // inherited from NSObject
+
+	static new(): FBSDKGraphRequestConnectionFactory; // inherited from NSObject
+
+	createGraphRequestConnection(): FBSDKGraphRequestConnecting;
+}
+
+interface FBSDKGraphRequestConnectionFactoryProtocol {
+
+	createGraphRequestConnection(): FBSDKGraphRequestConnecting;
+}
+declare var FBSDKGraphRequestConnectionFactoryProtocol: {
+
+	prototype: FBSDKGraphRequestConnectionFactoryProtocol;
 };
 
 declare class FBSDKGraphRequestDataAttachment extends NSObject {
@@ -831,18 +1365,346 @@ declare var FBSDKGraphRequestErrorKey: string;
 
 declare var FBSDKGraphRequestErrorParsedJSONResponseKey: string;
 
+declare class FBSDKGraphRequestFactory extends NSObject implements FBSDKGraphRequestFactoryProtocol {
+
+	static alloc(): FBSDKGraphRequestFactory; // inherited from NSObject
+
+	static new(): FBSDKGraphRequestFactory; // inherited from NSObject
+
+	createGraphRequestWithGraphPath(graphPath: string): FBSDKGraphRequestProtocol;
+
+	createGraphRequestWithGraphPathParameters(graphPath: string, parameters: NSDictionary<string, any>): FBSDKGraphRequestProtocol;
+
+	createGraphRequestWithGraphPathParametersFlags(graphPath: string, parameters: NSDictionary<string, any>, flags: FBSDKGraphRequestFlags): FBSDKGraphRequestProtocol;
+
+	createGraphRequestWithGraphPathParametersHTTPMethod(graphPath: string, parameters: NSDictionary<string, any>, method: string): FBSDKGraphRequestProtocol;
+
+	createGraphRequestWithGraphPathParametersTokenStringHTTPMethodFlags(graphPath: string, parameters: NSDictionary<string, any>, tokenString: string, method: string, flags: FBSDKGraphRequestFlags): FBSDKGraphRequestProtocol;
+
+	createGraphRequestWithGraphPathParametersTokenStringVersionHTTPMethod(graphPath: string, parameters: NSDictionary<string, any>, tokenString: string, version: string, method: string): FBSDKGraphRequestProtocol;
+}
+
+interface FBSDKGraphRequestFactoryProtocol {
+
+	createGraphRequestWithGraphPath(graphPath: string): FBSDKGraphRequestProtocol;
+
+	createGraphRequestWithGraphPathParameters(graphPath: string, parameters: NSDictionary<string, any>): FBSDKGraphRequestProtocol;
+
+	createGraphRequestWithGraphPathParametersFlags(graphPath: string, parameters: NSDictionary<string, any>, flags: FBSDKGraphRequestFlags): FBSDKGraphRequestProtocol;
+
+	createGraphRequestWithGraphPathParametersHTTPMethod(graphPath: string, parameters: NSDictionary<string, any>, method: string): FBSDKGraphRequestProtocol;
+
+	createGraphRequestWithGraphPathParametersTokenStringHTTPMethodFlags(graphPath: string, parameters: NSDictionary<string, any>, tokenString: string, method: string, flags: FBSDKGraphRequestFlags): FBSDKGraphRequestProtocol;
+
+	createGraphRequestWithGraphPathParametersTokenStringVersionHTTPMethod(graphPath: string, parameters: NSDictionary<string, any>, tokenString: string, version: string, method: string): FBSDKGraphRequestProtocol;
+}
+declare var FBSDKGraphRequestFactoryProtocol: {
+
+	prototype: FBSDKGraphRequestFactoryProtocol;
+};
+
+declare const enum FBSDKGraphRequestFlags {
+
+	None = 0,
+
+	SkipClientToken = 2,
+
+	DoNotInvalidateTokenOnError = 4,
+
+	DisableErrorRecovery = 8
+}
+
+interface FBSDKGraphRequestProtocol {
+
+	HTTPMethod: string;
+
+	flags: FBSDKGraphRequestFlags;
+
+	graphErrorRecoveryDisabled: boolean;
+
+	graphPath: string;
+
+	hasAttachments: boolean;
+
+	parameters: NSDictionary<string, any>;
+
+	tokenString: string;
+
+	version: string;
+
+	formattedDescription(): string;
+
+	startWithCompletion(completion: (p1: FBSDKGraphRequestConnecting, p2: any, p3: NSError) => void): FBSDKGraphRequestConnecting;
+}
+declare var FBSDKGraphRequestProtocol: {
+
+	prototype: FBSDKGraphRequestProtocol;
+};
+
 declare var FBSDKHTTPMethodDELETE: string;
 
 declare var FBSDKHTTPMethodGET: string;
 
 declare var FBSDKHTTPMethodPOST: string;
 
-declare const enum FBSDKIncludeStatusBarInSize {
+declare class FBSDKIcon extends NSObject {
 
-	Never = 0,
+	static alloc(): FBSDKIcon; // inherited from NSObject
 
-	Always = 1
+	static new(): FBSDKIcon; // inherited from NSObject
+
+	pathWithSize(size: CGSize): any;
 }
+
+declare class FBSDKImpressionTrackingButton extends UIButton {
+
+	static alloc(): FBSDKImpressionTrackingButton; // inherited from NSObject
+
+	static appearance(): FBSDKImpressionTrackingButton; // inherited from UIAppearance
+
+	static appearanceForTraitCollection(trait: UITraitCollection): FBSDKImpressionTrackingButton; // inherited from UIAppearance
+
+	static appearanceForTraitCollectionWhenContainedIn(trait: UITraitCollection, ContainerClass: typeof NSObject): FBSDKImpressionTrackingButton; // inherited from UIAppearance
+
+	static appearanceForTraitCollectionWhenContainedInInstancesOfClasses(trait: UITraitCollection, containerTypes: NSArray<typeof NSObject> | typeof NSObject[]): FBSDKImpressionTrackingButton; // inherited from UIAppearance
+
+	static appearanceWhenContainedIn(ContainerClass: typeof NSObject): FBSDKImpressionTrackingButton; // inherited from UIAppearance
+
+	static appearanceWhenContainedInInstancesOfClasses(containerTypes: NSArray<typeof NSObject> | typeof NSObject[]): FBSDKImpressionTrackingButton; // inherited from UIAppearance
+
+	static buttonWithConfigurationPrimaryAction(configuration: UIButtonConfiguration, primaryAction: UIAction): FBSDKImpressionTrackingButton; // inherited from UIButton
+
+	static buttonWithType(buttonType: UIButtonType): FBSDKImpressionTrackingButton; // inherited from UIButton
+
+	static buttonWithTypePrimaryAction(buttonType: UIButtonType, primaryAction: UIAction): FBSDKImpressionTrackingButton; // inherited from UIButton
+
+	static new(): FBSDKImpressionTrackingButton; // inherited from NSObject
+
+	static systemButtonWithImageTargetAction(image: UIImage, target: any, action: string): FBSDKImpressionTrackingButton; // inherited from UIButton
+
+	static systemButtonWithPrimaryAction(primaryAction: UIAction): FBSDKImpressionTrackingButton; // inherited from UIButton
+}
+
+declare class FBSDKInternalUtility extends NSObject implements FBSDKAppAvailabilityChecker, FBSDKAppURLSchemeProviding, FBSDKInternalUtilityProtocol, FBSDKURLHosting {
+
+	static alloc(): FBSDKInternalUtility; // inherited from NSObject
+
+	static new(): FBSDKInternalUtility; // inherited from NSObject
+
+	readonly bundleForStrings: NSBundle;
+
+	static readonly sharedUtility: FBSDKInternalUtility;
+
+	readonly isFacebookAppInstalled: boolean; // inherited from FBSDKAppAvailabilityChecker
+
+	readonly isMSQRDPlayerAppInstalled: boolean; // inherited from FBSDKInternalUtilityProtocol
+
+	readonly isMessengerAppInstalled: boolean; // inherited from FBSDKAppAvailabilityChecker
+
+	URLWithSchemeHostPathQueryParametersError(scheme: string, host: string, path: string, queryParameters: NSDictionary<string, any>): NSURL;
+
+	appURLScheme(): string;
+
+	appURLWithHostPathQueryParametersError(host: string, path: string, queryParameters: NSDictionary<string, any>): NSURL;
+
+	checkRegisteredCanOpenURLScheme(urlScheme: string): void;
+
+	extractPermissionsFromResponseGrantedPermissionsDeclinedPermissionsExpiredPermissions(responseObject: NSDictionary<string, any>, grantedPermissions: NSMutableSet<any>, declinedPermissions: NSMutableSet<any>, expiredPermissions: NSMutableSet<any>): void;
+
+	facebookURLWithHostPrefixPathQueryParametersError(hostPrefix: string, path: string, queryParameters: NSDictionary<string, any>): NSURL;
+
+	findWindow(): UIWindow;
+
+	isBrowserURL(URL: NSURL): boolean;
+
+	isRegisteredCanOpenURLScheme(urlScheme: string): boolean;
+
+	isRegisteredURLScheme(urlScheme: string): boolean;
+
+	objectIsEqualToObject(object: any, other: any): boolean;
+
+	parametersFromFBURL(url: NSURL): NSDictionary<string, any>;
+
+	registerTransientObject(object: any): void;
+
+	topMostViewController(): UIViewController;
+
+	unregisterTransientObject(object: any): void;
+
+	validateAppID(): void;
+
+	validateRequiredClientAccessToken(): string;
+
+	validateURLSchemes(): void;
+
+	viewControllerForView(view: UIView): UIViewController;
+}
+
+interface FBSDKInternalUtilityProtocol {
+
+	isFacebookAppInstalled: boolean;
+
+	isMSQRDPlayerAppInstalled: boolean;
+
+	URLWithSchemeHostPathQueryParametersError(scheme: string, host: string, path: string, queryParameters: NSDictionary<string, any>): NSURL;
+
+	checkRegisteredCanOpenURLScheme(urlScheme: string): void;
+
+	registerTransientObject(object: any): void;
+
+	unregisterTransientObject(object: any): void;
+
+	validateURLSchemes(): void;
+}
+declare var FBSDKInternalUtilityProtocol: {
+
+	prototype: FBSDKInternalUtilityProtocol;
+};
+
+declare class FBSDKKeychainStore extends NSObject implements FBSDKKeychainStoreProtocol {
+
+	static alloc(): FBSDKKeychainStore; // inherited from NSObject
+
+	static new(): FBSDKKeychainStore; // inherited from NSObject
+
+	readonly accessGroup: string;
+
+	readonly service: string;
+
+	constructor(o: { service: string; accessGroup: string; });
+
+	dataForKey(key: string): NSData;
+
+	dictionaryForKey(key: string): NSDictionary<string, any>;
+
+	initWithServiceAccessGroup(service: string, accessGroup: string): this;
+
+	queryForKey(key: string): NSMutableDictionary<string, any>;
+
+	setDataForKeyAccessibility(value: NSData, key: string, accessibility: any): boolean;
+
+	setDictionaryForKeyAccessibility(value: NSDictionary<string, any>, key: string, accessibility: any): boolean;
+
+	setStringForKeyAccessibility(value: string, key: string, accessibility: any): boolean;
+
+	stringForKey(key: string): string;
+}
+
+declare class FBSDKKeychainStoreFactory extends NSObject implements FBSDKKeychainStoreProviding {
+
+	static alloc(): FBSDKKeychainStoreFactory; // inherited from NSObject
+
+	static new(): FBSDKKeychainStoreFactory; // inherited from NSObject
+
+	createKeychainStoreWithServiceAccessGroup(service: string, accessGroup: string): FBSDKKeychainStoreProtocol;
+}
+
+interface FBSDKKeychainStoreProtocol {
+
+	dictionaryForKey(key: string): NSDictionary<string, any>;
+
+	setDictionaryForKeyAccessibility(value: NSDictionary<string, any>, key: string, accessibility: any): boolean;
+
+	setStringForKeyAccessibility(value: string, key: string, accessibility: any): boolean;
+
+	stringForKey(key: string): string;
+}
+declare var FBSDKKeychainStoreProtocol: {
+
+	prototype: FBSDKKeychainStoreProtocol;
+};
+
+interface FBSDKKeychainStoreProviding {
+
+	createKeychainStoreWithServiceAccessGroup(service: string, accessGroup: string): FBSDKKeychainStoreProtocol;
+}
+declare var FBSDKKeychainStoreProviding: {
+
+	prototype: FBSDKKeychainStoreProviding;
+};
+
+declare class FBSDKLocation extends NSObject implements NSCopying, NSObjectProtocol, NSSecureCoding {
+
+	static alloc(): FBSDKLocation; // inherited from NSObject
+
+	static locationFromDictionary(dictionary: NSDictionary<string, string>): FBSDKLocation;
+
+	static new(): FBSDKLocation; // inherited from NSObject
+
+	readonly id: string;
+
+	readonly name: string;
+
+	readonly debugDescription: string; // inherited from NSObjectProtocol
+
+	readonly description: string; // inherited from NSObjectProtocol
+
+	readonly hash: number; // inherited from NSObjectProtocol
+
+	readonly isProxy: boolean; // inherited from NSObjectProtocol
+
+	readonly superclass: typeof NSObject; // inherited from NSObjectProtocol
+
+	readonly  // inherited from NSObjectProtocol
+
+	static readonly supportsSecureCoding: boolean; // inherited from NSSecureCoding
+
+	constructor(o: { coder: NSCoder; }); // inherited from NSCoding
+
+	class(): typeof NSObject;
+
+	conformsToProtocol(aProtocol: any /* Protocol */): boolean;
+
+	copyWithZone(zone: interop.Pointer | interop.Reference<any>): any;
+
+	encodeWithCoder(coder: NSCoder): void;
+
+	initWithCoder(coder: NSCoder): this;
+
+	isEqual(object: any): boolean;
+
+	isKindOfClass(aClass: typeof NSObject): boolean;
+
+	isMemberOfClass(aClass: typeof NSObject): boolean;
+
+	performSelector(aSelector: string): any;
+
+	performSelectorWithObject(aSelector: string, object: any): any;
+
+	performSelectorWithObjectWithObject(aSelector: string, object1: any, object2: any): any;
+
+	respondsToSelector(aSelector: string): boolean;
+
+	retainCount(): number;
+
+	self(): this;
+}
+
+declare class FBSDKLogger extends NSObject {
+
+	static alloc(): FBSDKLogger; // inherited from NSObject
+
+	static new(): FBSDKLogger; // inherited from NSObject
+
+	static singleShotLogEntryLogEntry(loggingBehavior: string, logEntry: string): void;
+}
+
+interface FBSDKLogging {
+
+	contents: string;
+
+	loggingBehavior: string;
+
+	initWithLoggingBehavior?(loggingBehavior: string): FBSDKLogging;
+
+	logEntry(logEntry: string): void;
+}
+declare var FBSDKLogging: {
+
+	prototype: FBSDKLogging;
+
+	singleShotLogEntryLogEntry(loggingBehavior: string, logEntry: string): void;
+};
 
 declare var FBSDKLoggingBehaviorAccessTokens: string;
 
@@ -864,6 +1726,21 @@ declare var FBSDKLoggingBehaviorPerformanceCharacteristics: string;
 
 declare var FBSDKLoggingBehaviorUIControlErrors: string;
 
+declare class FBSDKLoginTooltip extends NSObject {
+
+	static alloc(): FBSDKLoginTooltip; // inherited from NSObject
+
+	static new(): FBSDKLoginTooltip; // inherited from NSObject
+
+	readonly enabled: boolean;
+
+	readonly text: string;
+
+	constructor(o: { text: string; enabled: boolean; });
+
+	initWithTextEnabled(text: string, enabled: boolean): this;
+}
+
 declare class FBSDKMeasurementEvent extends NSObject {
 
 	static alloc(): FBSDKMeasurementEvent; // inherited from NSObject
@@ -877,7 +1754,7 @@ declare var FBSDKMeasurementEventNameKey: string;
 
 declare var FBSDKMeasurementEventNotification: string;
 
-interface FBSDKMutableCopying extends FBSDKCopying, NSMutableCopying {
+interface FBSDKMutableCopying extends NSCopying, NSMutableCopying, NSObjectProtocol {
 
 	mutableCopy(): any;
 }
@@ -910,21 +1787,39 @@ declare const enum FBSDKProductCondition {
 	Used = 2
 }
 
-declare class FBSDKProfile extends NSObject implements NSCopying, NSSecureCoding {
+declare class FBSDKProfile extends NSObject implements FBSDKProfileProviding, NSCopying, NSSecureCoding {
 
 	static alloc(): FBSDKProfile; // inherited from NSObject
 
 	static enableUpdatesOnAccessTokenChange(enable: boolean): void;
 
+	static fetchCachedProfile(): FBSDKProfile;
+
 	static loadCurrentProfileWithCompletion(completion: (p1: FBSDKProfile, p2: NSError) => void): void;
 
 	static new(): FBSDKProfile; // inherited from NSObject
 
+	readonly ageRange: FBSDKUserAgeRange;
+
+	readonly birthday: Date;
+
+	readonly email: string;
+
 	readonly firstName: string;
+
+	readonly friendIDs: NSArray<string>;
+
+	readonly gender: string;
+
+	readonly hometown: FBSDKLocation;
+
+	readonly imageURL: NSURL;
 
 	readonly lastName: string;
 
 	readonly linkURL: NSURL;
+
+	readonly location: FBSDKLocation;
 
 	readonly middleName: string;
 
@@ -934,13 +1829,17 @@ declare class FBSDKProfile extends NSObject implements NSCopying, NSSecureCoding
 
 	readonly userID: string;
 
-	static currentProfile: FBSDKProfile;
+	static currentProfile: FBSDKProfile; // inherited from FBSDKProfileProviding
 
 	static readonly supportsSecureCoding: boolean; // inherited from NSSecureCoding
 
 	constructor(o: { coder: NSCoder; }); // inherited from NSCoding
 
 	constructor(o: { userID: string; firstName: string; middleName: string; lastName: string; name: string; linkURL: NSURL; refreshDate: Date; });
+
+	constructor(o: { userID: string; firstName: string; middleName: string; lastName: string; name: string; linkURL: NSURL; refreshDate: Date; imageURL: NSURL; email: string; friendIDs: NSArray<string> | string[]; birthday: Date; ageRange: FBSDKUserAgeRange; hometown: FBSDKLocation; location: FBSDKLocation; gender: string; });
+
+	constructor(o: { userID: string; firstName: string; middleName: string; lastName: string; name: string; linkURL: NSURL; refreshDate: Date; imageURL: NSURL; email: string; friendIDs: NSArray<string> | string[]; birthday: Date; ageRange: FBSDKUserAgeRange; hometown: FBSDKLocation; location: FBSDKLocation; gender: string; isLimited: boolean; });
 
 	copyWithZone(zone: interop.Pointer | interop.Reference<any>): any;
 
@@ -951,6 +1850,10 @@ declare class FBSDKProfile extends NSObject implements NSCopying, NSSecureCoding
 	initWithCoder(coder: NSCoder): this;
 
 	initWithUserIDFirstNameMiddleNameLastNameNameLinkURLRefreshDate(userID: string, firstName: string, middleName: string, lastName: string, name: string, linkURL: NSURL, refreshDate: Date): this;
+
+	initWithUserIDFirstNameMiddleNameLastNameNameLinkURLRefreshDateImageURLEmailFriendIDsBirthdayAgeRangeHometownLocationGender(userID: string, firstName: string, middleName: string, lastName: string, name: string, linkURL: NSURL, refreshDate: Date, imageURL: NSURL, email: string, friendIDs: NSArray<string> | string[], birthday: Date, ageRange: FBSDKUserAgeRange, hometown: FBSDKLocation, location: FBSDKLocation, gender: string): this;
+
+	initWithUserIDFirstNameMiddleNameLastNameNameLinkURLRefreshDateImageURLEmailFriendIDsBirthdayAgeRangeHometownLocationGenderIsLimited(userID: string, firstName: string, middleName: string, lastName: string, name: string, linkURL: NSURL, refreshDate: Date, imageURL: NSURL, email: string, friendIDs: NSArray<string> | string[], birthday: Date, ageRange: FBSDKUserAgeRange, hometown: FBSDKLocation, location: FBSDKLocation, gender: string, isLimited: boolean): this;
 
 	isEqualToProfile(profile: FBSDKProfile): boolean;
 }
@@ -965,7 +1868,13 @@ declare const enum FBSDKProfilePictureMode {
 
 	Square = 0,
 
-	Normal = 1
+	Normal = 1,
+
+	Album = 2,
+
+	Small = 3,
+
+	Large = 4
 }
 
 declare class FBSDKProfilePictureView extends UIView {
@@ -1001,7 +1910,31 @@ declare class FBSDKProfilePictureView extends UIView {
 	setNeedsImageUpdate(): void;
 }
 
-declare class FBSDKSettings extends NSObject {
+interface FBSDKProfileProviding {
+}
+declare var FBSDKProfileProviding: {
+
+	prototype: FBSDKProfileProviding;
+
+	fetchCachedProfile(): FBSDKProfile;
+};
+
+declare class FBSDKServerConfigurationProvider extends NSObject {
+
+	static alloc(): FBSDKServerConfigurationProvider; // inherited from NSObject
+
+	static new(): FBSDKServerConfigurationProvider; // inherited from NSObject
+
+	readonly loggingToken: string;
+
+	cachedSmartLoginOptions(): number;
+
+	loadServerConfigurationWithCompletionBlock(completionBlock: (p1: FBSDKLoginTooltip, p2: NSError) => void): void;
+
+	useSafariViewControllerForDialogName(dialogName: string): boolean;
+}
+
+declare class FBSDKSettings extends NSObject implements FBSDKSettingsProtocol {
 
 	static alloc(): FBSDKSettings; // inherited from NSObject
 
@@ -1009,17 +1942,33 @@ declare class FBSDKSettings extends NSObject {
 
 	static enableLoggingBehavior(loggingBehavior: string): void;
 
+	static isAdvertiserTrackingEnabled(): boolean;
+
 	static new(): FBSDKSettings; // inherited from NSObject
 
+	static setAdvertiserTrackingEnabled(advertiserTrackingEnabled: boolean): boolean;
+
+	static setDataProcessingOptions(options: NSArray<string> | string[]): void;
+
+	static setDataProcessingOptionsCountryState(options: NSArray<string> | string[], country: number, state: number): void;
+
+	JPEGCompressionQuality: number;
+
+	autoLogAppEventsEnabled: boolean;
+
+	readonly defaultGraphAPIVersion: string;
+
+	skAdNetworkReportEnabled: boolean;
+
 	static JPEGCompressionQuality: number;
+
+	static SKAdNetworkReportEnabled: boolean;
 
 	static advertiserIDCollectionEnabled: boolean;
 
 	static appID: string;
 
 	static appURLSchemeSuffix: string;
-
-	static autoInitEnabled: boolean;
 
 	static autoLogAppEventsEnabled: boolean;
 
@@ -1037,30 +1986,179 @@ declare class FBSDKSettings extends NSObject {
 
 	static graphErrorRecoveryEnabled: boolean;
 
-	static instrumentEnabled: boolean;
-
 	static limitEventAndDataUsage: boolean;
 
-	static loggingBehaviors: NSSet<string>;
-
 	static readonly sdkVersion: string;
+
+	static readonly sharedSettings: FBSDKSettings;
+
+	static shouldUseCachedValuesForExpensiveMetadata: boolean;
+
+	advertiserIDCollectionEnabled: boolean; // inherited from FBSDKSettingsProtocol
+
+	advertiserTrackingEnabled: boolean; // inherited from FBSDKSettingsProtocol
+
+	readonly advertiserTrackingEnabledTimestamp: Date; // inherited from FBSDKSettingsProtocol
+
+	readonly advertisingTrackingStatus: FBSDKAdvertisingTrackingStatus; // inherited from FBSDKSettingsProtocol
+
+	appID: string; // inherited from FBSDKSettingsProtocol
+
+	appURLSchemeSuffix: string; // inherited from FBSDKSettingsProtocol
+
+	clientToken: string; // inherited from FBSDKSettingsProtocol
+
+	codelessDebugLogEnabled: boolean; // inherited from FBSDKSettingsProtocol
+
+	displayName: string; // inherited from FBSDKSettingsProtocol
+
+	facebookDomainPart: string; // inherited from FBSDKSettingsProtocol
+
+	readonly graphAPIDebugParamValue: string; // inherited from FBSDKSettingsProtocol
+
+	readonly graphAPIVersion: string; // inherited from FBSDKSettingsProtocol
+
+	readonly installTimestamp: Date; // inherited from FBSDKSettingsProtocol
+
+	readonly isAutoLogAppEventsEnabled: boolean; // inherited from FBSDKSettingsProtocol
+
+	readonly isDataProcessingRestricted: boolean; // inherited from FBSDKSettingsProtocol
+
+	isEventDataUsageLimited: boolean; // inherited from FBSDKSettingsProtocol
+
+	isGraphErrorRecoveryEnabled: boolean; // inherited from FBSDKSettingsProtocol
+
+	readonly isSKAdNetworkReportEnabled: boolean; // inherited from FBSDKSettingsProtocol
+
+	readonly isSetATETimeExceedsInstallTime: boolean; // inherited from FBSDKSettingsProtocol
+
+	loggingBehaviors: NSSet<string>; // inherited from FBSDKSettingsProtocol
+
+	readonly sdkVersion: string; // inherited from FBSDKSettingsProtocol
+
+	shouldUseCachedValuesForExpensiveMetadata: boolean; // inherited from FBSDKSettingsProtocol
+
+	shouldUseTokenOptimizations: boolean; // inherited from FBSDKSettingsProtocol
+
+	userAgentSuffix: string; // inherited from FBSDKSettingsProtocol
+
+	static loggingBehaviors: NSSet<string>; // inherited from FBSDKSettingsProtocol
+
+	disableLoggingBehavior(loggingBehavior: string): void;
+
+	enableLoggingBehavior(loggingBehavior: string): void;
 }
 
-declare class FBSDKTestUsersManager extends NSObject {
+interface FBSDKSettingsLogging {
 
-	static alloc(): FBSDKTestUsersManager; // inherited from NSObject
+	logIfSDKSettingsChanged(): void;
 
-	static new(): FBSDKTestUsersManager; // inherited from NSObject
+	logWarnings(): void;
 
-	static sharedInstanceForAppIDAppSecret(appID: string, appSecret: string): FBSDKTestUsersManager;
+	recordInstall(): void;
+}
+declare var FBSDKSettingsLogging: {
 
-	addTestAccountWithPermissionsCompletionHandler(permissions: NSSet<string>, handler: (p1: NSArray<FBSDKAccessToken>, p2: NSError) => void): void;
+	prototype: FBSDKSettingsLogging;
+};
 
-	makeFriendsWithFirstSecondCallback(first: FBSDKAccessToken, second: FBSDKAccessToken, callback: (p1: NSError) => void): void;
+interface FBSDKSettingsProtocol {
 
-	removeTestAccountCompletionHandler(userId: string, handler: (p1: NSError) => void): void;
+	advertiserIDCollectionEnabled: boolean;
 
-	requestTestAccountTokensWithArraysOfPermissionsCreateIfNotFoundCompletionHandler(arraysOfPermissions: NSArray<NSSet<string>> | NSSet<string>[], createIfNotFound: boolean, handler: (p1: NSArray<FBSDKAccessToken>, p2: NSError) => void): void;
+	advertiserTrackingEnabled: boolean;
+
+	advertiserTrackingEnabledTimestamp: Date;
+
+	advertisingTrackingStatus: FBSDKAdvertisingTrackingStatus;
+
+	appID: string;
+
+	appURLSchemeSuffix: string;
+
+	clientToken: string;
+
+	codelessDebugLogEnabled: boolean;
+
+	displayName: string;
+
+	facebookDomainPart: string;
+
+	graphAPIDebugParamValue: string;
+
+	graphAPIVersion: string;
+
+	installTimestamp: Date;
+
+	isAutoLogAppEventsEnabled: boolean;
+
+	isDataProcessingRestricted: boolean;
+
+	isEventDataUsageLimited: boolean;
+
+	isGraphErrorRecoveryEnabled: boolean;
+
+	isSKAdNetworkReportEnabled: boolean;
+
+	isSetATETimeExceedsInstallTime: boolean;
+
+	loggingBehaviors: NSSet<string>;
+
+	sdkVersion: string;
+
+	shouldUseCachedValuesForExpensiveMetadata: boolean;
+
+	shouldUseTokenOptimizations: boolean;
+
+	userAgentSuffix: string;
+}
+declare var FBSDKSettingsProtocol: {
+
+	prototype: FBSDKSettingsProtocol;
+};
+
+declare class FBSDKShareDialogConfiguration extends NSObject {
+
+	static alloc(): FBSDKShareDialogConfiguration; // inherited from NSObject
+
+	static new(): FBSDKShareDialogConfiguration; // inherited from NSObject
+
+	readonly defaultShareMode: string;
+
+	shouldUseNativeDialogForDialogName(dialogName: string): boolean;
+
+	shouldUseSafariViewControllerForDialogName(dialogName: string): boolean;
+}
+
+interface FBSDKTokenCaching extends NSObjectProtocol {
+
+	accessToken: FBSDKAccessToken;
+
+	authenticationToken: FBSDKAuthenticationToken;
+}
+declare var FBSDKTokenCaching: {
+
+	prototype: FBSDKTokenCaching;
+};
+
+interface FBSDKTokenStringProviding {
+}
+declare var FBSDKTokenStringProviding: {
+
+	prototype: FBSDKTokenStringProviding;
+};
+
+declare class FBSDKTransformer extends NSObject {
+
+	static alloc(): FBSDKTransformer; // inherited from NSObject
+
+	static new(): FBSDKTransformer; // inherited from NSObject
+
+	CATransform3DConcatB(a: CATransform3D, b: CATransform3D): CATransform3D;
+
+	CATransform3DMakeScaleSySz(sx: number, sy: number, sz: number): CATransform3D;
+
+	CATransform3DMakeTranslationTyTz(tx: number, ty: number, tz: number): CATransform3D;
 }
 
 declare class FBSDKURL extends NSObject {
@@ -1090,6 +2188,102 @@ declare class FBSDKURL extends NSObject {
 	readonly targetURL: NSURL;
 }
 
+interface FBSDKURLHosting {
+
+	appURLWithHostPathQueryParametersError(host: string, path: string, queryParameters: NSDictionary<string, any>): NSURL;
+
+	facebookURLWithHostPrefixPathQueryParametersError(hostPrefix: string, path: string, queryParameters: NSDictionary<string, any>): NSURL;
+}
+declare var FBSDKURLHosting: {
+
+	prototype: FBSDKURLHosting;
+};
+
+interface FBSDKURLOpener {
+
+	openURLSenderHandler(url: NSURL, sender: FBSDKURLOpening, handler: (p1: boolean, p2: NSError) => void): void;
+
+	openURLWithSafariViewControllerSenderFromViewControllerHandler(url: NSURL, sender: FBSDKURLOpening, fromViewController: UIViewController, handler: (p1: boolean, p2: NSError) => void): void;
+}
+declare var FBSDKURLOpener: {
+
+	prototype: FBSDKURLOpener;
+};
+
+interface FBSDKURLOpening extends NSObjectProtocol {
+
+	applicationDidBecomeActive(application: UIApplication): void;
+
+	applicationOpenURLSourceApplicationAnnotation(application: UIApplication, url: NSURL, sourceApplication: string, annotation: any): boolean;
+
+	canOpenURLForApplicationSourceApplicationAnnotation(url: NSURL, application: UIApplication, sourceApplication: string, annotation: any): boolean;
+
+	isAuthenticationURL(url: NSURL): boolean;
+
+	shouldStopPropagationOfURL?(url: NSURL): boolean;
+}
+declare var FBSDKURLOpening: {
+
+	prototype: FBSDKURLOpening;
+};
+
+declare class FBSDKUserAgeRange extends NSObject implements NSCopying, NSObjectProtocol, NSSecureCoding {
+
+	static ageRangeFromDictionary(dictionary: NSDictionary<string, number>): FBSDKUserAgeRange;
+
+	static alloc(): FBSDKUserAgeRange; // inherited from NSObject
+
+	static new(): FBSDKUserAgeRange; // inherited from NSObject
+
+	readonly max: number;
+
+	readonly min: number;
+
+	readonly debugDescription: string; // inherited from NSObjectProtocol
+
+	readonly description: string; // inherited from NSObjectProtocol
+
+	readonly hash: number; // inherited from NSObjectProtocol
+
+	readonly isProxy: boolean; // inherited from NSObjectProtocol
+
+	readonly superclass: typeof NSObject; // inherited from NSObjectProtocol
+
+	readonly  // inherited from NSObjectProtocol
+
+	static readonly supportsSecureCoding: boolean; // inherited from NSSecureCoding
+
+	constructor(o: { coder: NSCoder; }); // inherited from NSCoding
+
+	class(): typeof NSObject;
+
+	conformsToProtocol(aProtocol: any /* Protocol */): boolean;
+
+	copyWithZone(zone: interop.Pointer | interop.Reference<any>): any;
+
+	encodeWithCoder(coder: NSCoder): void;
+
+	initWithCoder(coder: NSCoder): this;
+
+	isEqual(object: any): boolean;
+
+	isKindOfClass(aClass: typeof NSObject): boolean;
+
+	isMemberOfClass(aClass: typeof NSObject): boolean;
+
+	performSelector(aSelector: string): any;
+
+	performSelectorWithObject(aSelector: string, object: any): any;
+
+	performSelectorWithObjectWithObject(aSelector: string, object1: any, object2: any): any;
+
+	respondsToSelector(aSelector: string): boolean;
+
+	retainCount(): number;
+
+	self(): this;
+}
+
 declare class FBSDKUtility extends NSObject {
 
 	static SHA256Hash(input: NSObject): string;
@@ -1102,6 +2296,8 @@ declare class FBSDKUtility extends NSObject {
 
 	static dictionaryWithQueryString(queryString: string): NSDictionary<string, string>;
 
+	static getGraphDomainFromToken(): string;
+
 	static new(): FBSDKUtility; // inherited from NSObject
 
 	static queryStringWithDictionaryError(dictionary: NSDictionary<string, any>): string;
@@ -1109,7 +2305,81 @@ declare class FBSDKUtility extends NSObject {
 	static startGCDTimerWithIntervalBlock(interval: number, block: () => void): NSObject;
 
 	static stopGCDTimer(timer: NSObject): void;
+
+	static unversionedFacebookURLWithHostPrefixPathQueryParametersError(hostPrefix: string, path: string, queryParameters: NSDictionary<string, any>): NSURL;
 }
+
+declare class FBSDKWebDialog extends NSObject {
+
+	static alloc(): FBSDKWebDialog; // inherited from NSObject
+
+	static createAndShowParametersFrameDelegateWindowFinder(name: string, parameters: NSDictionary<string, any>, frame: CGRect, delegate: FBSDKWebDialogDelegate, windowFinder: FBSDKWindowFinding): FBSDKWebDialog;
+
+	static dialogWithNameDelegate(name: string, delegate: FBSDKWebDialogDelegate): FBSDKWebDialog;
+
+	static new(): FBSDKWebDialog; // inherited from NSObject
+
+	static showWithNameParametersDelegate(name: string, parameters: NSDictionary<string, any>, delegate: FBSDKWebDialogDelegate): FBSDKWebDialog;
+
+	shouldDeferVisibility: boolean;
+
+	windowFinder: FBSDKWindowFinding;
+}
+
+interface FBSDKWebDialogDelegate {
+
+	webDialogDidCancel(webDialog: FBSDKWebDialog): void;
+
+	webDialogDidCompleteWithResults(webDialog: FBSDKWebDialog, results: NSDictionary<string, any>): void;
+
+	webDialogDidFailWithError(webDialog: FBSDKWebDialog, error: NSError): void;
+}
+declare var FBSDKWebDialogDelegate: {
+
+	prototype: FBSDKWebDialogDelegate;
+};
+
+declare class FBSDKWebDialogView extends UIView {
+
+	static alloc(): FBSDKWebDialogView; // inherited from NSObject
+
+	static appearance(): FBSDKWebDialogView; // inherited from UIAppearance
+
+	static appearanceForTraitCollection(trait: UITraitCollection): FBSDKWebDialogView; // inherited from UIAppearance
+
+	static appearanceForTraitCollectionWhenContainedIn(trait: UITraitCollection, ContainerClass: typeof NSObject): FBSDKWebDialogView; // inherited from UIAppearance
+
+	static appearanceForTraitCollectionWhenContainedInInstancesOfClasses(trait: UITraitCollection, containerTypes: NSArray<typeof NSObject> | typeof NSObject[]): FBSDKWebDialogView; // inherited from UIAppearance
+
+	static appearanceWhenContainedIn(ContainerClass: typeof NSObject): FBSDKWebDialogView; // inherited from UIAppearance
+
+	static appearanceWhenContainedInInstancesOfClasses(containerTypes: NSArray<typeof NSObject> | typeof NSObject[]): FBSDKWebDialogView; // inherited from UIAppearance
+
+	static configureWithWebViewProviderUrlOpener(provider: any, urlOpener: any): void;
+
+	static new(): FBSDKWebDialogView; // inherited from NSObject
+
+	delegate: FBSDKWebDialogViewDelegate;
+
+	loadURL(URL: NSURL): void;
+
+	stopLoading(): void;
+}
+
+interface FBSDKWebDialogViewDelegate extends NSObjectProtocol {
+
+	webDialogViewDidCancel(webDialogView: FBSDKWebDialogView): void;
+
+	webDialogViewDidCompleteWithResults(webDialogView: FBSDKWebDialogView, results: NSDictionary<string, any>): void;
+
+	webDialogViewDidFailWithError(webDialogView: FBSDKWebDialogView, error: NSError): void;
+
+	webDialogViewDidFinishLoad(webDialogView: FBSDKWebDialogView): void;
+}
+declare var FBSDKWebDialogViewDelegate: {
+
+	prototype: FBSDKWebDialogViewDelegate;
+};
 
 declare class FBSDKWebViewAppLinkResolver extends NSObject implements FBSDKAppLinkResolving {
 
@@ -1155,3 +2425,18 @@ declare class FBSDKWebViewAppLinkResolver extends NSObject implements FBSDKAppLi
 
 	self(): this;
 }
+
+interface FBSDKWindowFinding {
+
+	findWindow(): UIWindow;
+}
+declare var FBSDKWindowFinding: {
+
+	prototype: FBSDKWindowFinding;
+};
+
+declare function fb_randomString(numberOfBytes: number): string;
+
+declare function fbsdkdfl_SLComposeViewControllerClass(): typeof NSObject;
+
+declare function fbsdkdfl_SLServiceTypeFacebook(): string;
