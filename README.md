@@ -449,7 +449,7 @@ If you want to support other ways of logging in, please check out these projects
 | GrantedScopes | A list of granted scopes. |
 | Id | The ID of the user |
 | AccessToken | The access token that your backend can use to retrieve user information. Not available when using `LimitedLogin`. |
-| ProfileDataFields | An object of of the profile fields that were requested in `FacebookLoginOptions.ProfileDataFields` or the basic profile when not set or using the `LimitedLogin` option.  |
+| ProfileDataFields | An object of of the profile fields that were requested in `FacebookLoginOptions.ProfileDataFields` or the basic profile when using the `LimitedLogin` option on iOS.  |
 
 ---
 
