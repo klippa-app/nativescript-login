@@ -525,7 +525,12 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
             }
 
             const loginManager = FBSDKLoginManager.alloc().init();
-            loginManager.logInWithPermissionsFromViewControllerHandler(scopes, Application.ios.rootController, (result: FBSDKLoginManagerLoginResult, error: NSError) => {
+            let tracking = FBSDKLoginTracking.Enabled;
+            if (facebookLoginOptions.LimitedLogin) {
+                tracking = FBSDKLoginTracking.Limited;
+            }
+            const loginConfiguration = FBSDKLoginConfiguration.alloc().initWithPermissionsTracking(scopes, tracking);
+            loginManager.logInFromViewControllerConfigurationCompletion(Application.ios.rootController, loginConfiguration, (result: FBSDKLoginManagerLoginResult, error: NSError) => {
                 const loginResult = new FacebookLoginResult();
                 if (result.isCancelled) {
                     loginResult.ResultType = FacebookLoginResultType.CANCELED;
@@ -541,13 +546,17 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
                     return;
                 }
 
-                const accessToken = result.token;
-                if (!accessToken) {
-                    loginResult.ResultType = FacebookLoginResultType.FAILED;
-                    loginResult.ErrorCode = 0;
-                    loginResult.ErrorMessage = "No access token returned";
-                    resolve(loginResult);
-                    return;
+                // Access token is not available in limited login mode.
+                let accessToken: FBSDKAccessToken;
+                if (!facebookLoginOptions.LimitedLogin) {
+                    accessToken = result.token;
+                    if (!accessToken) {
+                        loginResult.ResultType = FacebookLoginResultType.FAILED;
+                        loginResult.ErrorCode = 0;
+                        loginResult.ErrorMessage = "No access token returned";
+                        resolve(loginResult);
+                        return;
+                    }
                 }
 
                 loginResult.ResultType = FacebookLoginResultType.SUCCESS;
@@ -570,10 +579,72 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
                     }
                 }
 
-                loginResult.AccessToken = accessToken.tokenString;
-                loginResult.Id = accessToken.userID;
+                loginResult.Id = FBSDKProfile.currentProfile.userID;
 
-                if (facebookLoginOptions.RequestProfileData) {
+                loginResult.ProfileDataFields = {};
+                loginResult.ProfileDataFields["id"] = loginResult.Id;
+                if (FBSDKProfile.currentProfile.email) {
+                    loginResult.ProfileDataFields["email"] = FBSDKProfile.currentProfile.email;
+                }
+
+                if (FBSDKProfile.currentProfile.name) {
+                    loginResult.ProfileDataFields["name"] = FBSDKProfile.currentProfile.name;
+                }
+
+                if (FBSDKProfile.currentProfile.firstName) {
+                    loginResult.ProfileDataFields["first_name"] = FBSDKProfile.currentProfile.firstName;
+                }
+
+                if (FBSDKProfile.currentProfile.middleName) {
+                    loginResult.ProfileDataFields["middle_name"] = FBSDKProfile.currentProfile.middleName;
+                }
+
+                if (FBSDKProfile.currentProfile.lastName) {
+                    loginResult.ProfileDataFields["last_name"] = FBSDKProfile.currentProfile.lastName;
+                }
+
+                if (FBSDKProfile.currentProfile.gender) {
+                    loginResult.ProfileDataFields["gender"] = FBSDKProfile.currentProfile.gender;
+                }
+
+                if (FBSDKProfile.currentProfile.birthday) {
+                    loginResult.ProfileDataFields["birthday"] = FBSDKProfile.currentProfile.birthday.toISOString();
+                }
+
+                if (FBSDKProfile.currentProfile.imageURL) {
+                    loginResult.ProfileDataFields["image_url"] = FBSDKProfile.currentProfile.imageURL.absoluteString;
+                }
+
+                if (FBSDKProfile.currentProfile.linkURL) {
+                    loginResult.ProfileDataFields["link_url"] = FBSDKProfile.currentProfile.linkURL.absoluteString;
+                }
+
+                if (FBSDKProfile.currentProfile.ageRange) {
+                    loginResult.ProfileDataFields["age_range"] = FBSDKProfile.currentProfile.ageRange.description;
+                }
+
+                if (FBSDKProfile.currentProfile.hometown) {
+                    loginResult.ProfileDataFields["hometown"] = FBSDKProfile.currentProfile.hometown.name;
+                }
+
+                if (FBSDKProfile.currentProfile.location) {
+                    loginResult.ProfileDataFields["location"] = FBSDKProfile.currentProfile.location.name;
+                }
+
+                if (FBSDKProfile.currentProfile.friendIDs) {
+                    loginResult.ProfileDataFields["friend_ids"] = FBSDKProfile.currentProfile.friendIDs;
+                }
+
+                if (FBSDKProfile.currentProfile.refreshDate) {
+                    loginResult.ProfileDataFields["refresh_date"] = FBSDKProfile.currentProfile.refreshDate.toISOString();
+                }
+
+                if (!facebookLoginOptions.LimitedLogin) {
+                    loginResult.AccessToken = accessToken.tokenString;
+                    loginResult.Id = accessToken.userID;
+                }
+
+                if (!facebookLoginOptions.LimitedLogin && facebookLoginOptions.RequestProfileData) {
                     let profileFields = ["id", "name", "first_name", "last_name", "picture.type(large)", "email"];
                     if (facebookLoginOptions.ProfileDataFields && facebookLoginOptions.ProfileDataFields.length > 0) {
                         profileFields = facebookLoginOptions.ProfileDataFields;
@@ -590,7 +661,7 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
                             null,
                             "GET"
                         )
-                        .startWithCompletionHandler((connection: FBSDKGraphRequestConnection, obj: NSDictionary<string, any>, error: NSError) => {
+                        .startWithCompletion((connection: FBSDKGraphRequestConnection, obj: NSDictionary<string, any>, error: NSError) => {
                             if (error) {
                                 loginResult.ResultType = FacebookLoginResultType.FAILED;
                                 loginResult.ErrorCode = 2;
@@ -611,7 +682,6 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
                             resolve(loginResult);
                         });
                 } else {
-                    loginResult.ProfileDataFields = {};
                     resolve(loginResult);
                 }
             });

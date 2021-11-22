@@ -236,6 +236,16 @@ export interface FacebookLoginOptions {
      * Some fields might return a json serialized string, like the picture field.
      */
     ProfileDataFields?: Array<string>;
+
+    /**
+     * iOS only!
+     * Whether you want to use Limited Login. Facebook Login offers a
+     * Limited Login mode. When you use the limited version of Facebook Login,
+     * the fact that a person used Facebook Login with the app will not be used
+     * to personalize or measure advertising effectiveness.
+     * https://developers.facebook.com/docs/facebook-login/limited-login/
+     */
+    LimitedLogin?: boolean;
 }
 
 export enum FacebookLoginResultType {
