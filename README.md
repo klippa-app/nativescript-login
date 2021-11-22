@@ -436,9 +436,10 @@ If you want to support other ways of logging in, please check out these projects
 | Property | Description |
 | ---  | ---   |
 | Scopes | The permissions to request. If you don't add this param, we will request public_profile and email for you.  |
-| RequestProfileData | Whether to request profile data. If you don't enable this, you will only get an ID and a token. Perfect for server side handling. If you do enable this, we use the requested token on the Graph API to request the user profile.  |
-| ProfileDataFields | The fields to fetch when requesting the profile data. When not set, we get the following fields: id,name,first_name,last_name,picture.type(large),email. Some fields might return an object, like the picture field.  |
+| RequestProfileData | Whether to request profile data. If you don't enable this, you will only get an ID and a token. Perfect for server side handling. If you do enable this, we use the requested token on the Graph API to request the user profile. Not available when using LimitedLogin.  |
+| ProfileDataFields | The fields to fetch when requesting the profile data. When not set, we get the following fields: id,name,first_name,last_name,picture.type(large),email. Some fields might return an object, like the picture field. Not available when using LimitedLogin. |
 | ForceAccountSelection | Whether you want to force account selection. If you enable this option we will logout the user for you in the app.  |
+| LimitedLogin | iOS only! Whether you want to use Limited Login. Facebook Login offers a [Limited Login mode](https://developers.facebook.com/docs/facebook-login/limited-login/). When you use the limited version of Facebook Login, the fact that a person used Facebook Login with the app will not be used to personalize or measure advertising effectiveness. You will not get an access token when you enable this. |
 
 **FacebookLoginResult**:
 
@@ -453,8 +454,8 @@ If you want to support other ways of logging in, please check out these projects
 | DeniedScopes | A list of denied scopes to validate whether the user gave permission for all requested scopes. |
 | GrantedScopes | A list of granted scopes. |
 | Id | The ID of the user |
-| AccessToken | The access token that your backend can use to retrieve user information.  |
-| ProfileDataFields | An object of of the profile fields that were requested in `FacebookLoginOptions.ProfileDataFields` |
+| AccessToken | The access token that your backend can use to retrieve user information. Not available when using `LimitedLogin`. |
+| ProfileDataFields | An object of of the profile fields that were requested in `FacebookLoginOptions.ProfileDataFields` or the basic profile when not set or using the `LimitedLogin` option.  |
 
 ---
 
