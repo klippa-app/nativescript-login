@@ -1,2 +1,2 @@
 pod 'GoogleSignIn','~> 5.0'
-pod 'FBSDKLoginKit'
+pod 'FBSDKLoginKit','~> 12.0'

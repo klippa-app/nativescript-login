@@ -50,6 +50,21 @@ tns plugin add @klippa/nativescript-login@^1.0.0
 ```xml
 <meta-data android:name="com.facebook.sdk.ApplicationId" 
         android:value="@string/facebook_app_id"/>
+
+<activity android:name="com.facebook.FacebookActivity"
+          android:configChanges=
+                  "keyboard|keyboardHidden|screenLayout|screenSize|orientation"
+          android:label="@string/app_name" />
+<activity
+android:name="com.facebook.CustomTabActivity"
+android:exported="true">
+    <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="@string/fb_login_protocol_scheme" />
+    </intent-filter>
+</activity>
 ```
 
 * Follow the `6. Provide the Development and Release Key Hashes for Your App` step in the [manual](https://developers.facebook.com/docs/facebook-login/ios)
@@ -59,7 +74,7 @@ tns plugin add @klippa/nativescript-login@^1.0.0
 
 * Follow the `1. Select an App or Create a New App` step in the [manual](https://developers.facebook.com/docs/facebook-login/android)
 * Enter your Bundle Identifier at the step `3. Register and Configure Your App with Facebook` -> `3a. Add your Bundle Identifier`
-** Open `App_Resources/iOS/Info.plist` and add the following, replace `{{APP_ID}}` with your own app ID and `{{APP_NAME}}` with your app name:
+** Open `App_Resources/iOS/Info.plist` and add the following, replace `{{APP_ID}}` with your own app ID, `{{CLIENT_TOKEN}}` with your client token and `{{APP_NAME}}` with your app name:
  ```xml
 <key>CFBundleURLTypes</key>
 <array>
@@ -75,6 +90,8 @@ tns plugin add @klippa/nativescript-login@^1.0.0
 </array>
 <key>FacebookAppID</key>
 <string>{{APP_ID}}</string>
+<key>FacebookClientToken</key>
+<string>{{CLIENT_TOKEN}}</string>
 <key>FacebookDisplayName</key>
 <string>{{APP_NAME}}</string>
 <key>LSApplicationQueriesSchemes</key>
