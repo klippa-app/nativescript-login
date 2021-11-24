@@ -21,15 +21,50 @@ declare class GIDAuthentication extends NSObject implements NSSecureCoding {
 
 	constructor(o: { coder: NSCoder; }); // inherited from NSCoding
 
+	doWithFreshTokens(action: (p1: GIDAuthentication, p2: NSError) => void): void;
+
 	encodeWithCoder(coder: NSCoder): void;
 
 	fetcherAuthorizer(): GTMFetcherAuthorizationProtocol;
 
-	getTokensWithHandler(handler: (p1: GIDAuthentication, p2: NSError) => void): void;
+	initWithCoder(coder: NSCoder): this;
+}
+
+declare class GIDConfiguration extends NSObject implements NSCopying, NSSecureCoding {
+
+	static alloc(): GIDConfiguration; // inherited from NSObject
+
+	static new(): GIDConfiguration; // inherited from NSObject
+
+	readonly clientID: string;
+
+	readonly hostedDomain: string;
+
+	readonly openIDRealm: string;
+
+	readonly serverClientID: string;
+
+	static readonly supportsSecureCoding: boolean; // inherited from NSSecureCoding
+
+	constructor(o: { clientID: string; });
+
+	constructor(o: { clientID: string; serverClientID: string; });
+
+	constructor(o: { clientID: string; serverClientID: string; hostedDomain: string; openIDRealm: string; });
+
+	constructor(o: { coder: NSCoder; }); // inherited from NSCoding
+
+	copyWithZone(zone: interop.Pointer | interop.Reference<any>): any;
+
+	encodeWithCoder(coder: NSCoder): void;
+
+	initWithClientID(clientID: string): this;
+
+	initWithClientIDServerClientID(clientID: string, serverClientID: string): this;
+
+	initWithClientIDServerClientIDHostedDomainOpenIDRealm(clientID: string, serverClientID: string, hostedDomain: string, openIDRealm: string): this;
 
 	initWithCoder(coder: NSCoder): this;
-
-	refreshTokensWithHandler(handler: (p1: GIDAuthentication, p2: NSError) => void): void;
 }
 
 declare class GIDGoogleUser extends NSObject implements NSSecureCoding {
@@ -40,13 +75,17 @@ declare class GIDGoogleUser extends NSObject implements NSSecureCoding {
 
 	readonly authentication: GIDAuthentication;
 
-	readonly grantedScopes: NSArray<any>;
+	readonly grantedScopes: NSArray<string>;
 
 	readonly hostedDomain: string;
+
+	readonly openIDRealm: string;
 
 	readonly profile: GIDProfileData;
 
 	readonly serverAuthCode: string;
+
+	readonly serverClientID: string;
 
 	readonly userID: string;
 
@@ -94,39 +133,23 @@ declare class GIDSignIn extends NSObject {
 
 	static new(): GIDSignIn; // inherited from NSObject
 
-	static sharedInstance(): GIDSignIn;
-
-	clientID: string;
-
 	readonly currentUser: GIDGoogleUser;
 
-	delegate: GIDSignInDelegate;
+	static readonly sharedInstance: GIDSignIn;
 
-	hostedDomain: string;
+	addScopesPresentingViewControllerCallback(scopes: NSArray<string> | string[], presentingViewController: UIViewController, callback: (p1: GIDGoogleUser, p2: NSError) => void): void;
 
-	language: string;
-
-	loginHint: string;
-
-	openIDRealm: string;
-
-	presentingViewController: UIViewController;
-
-	scopes: NSArray<any>;
-
-	serverClientID: string;
-
-	shouldFetchBasicProfile: boolean;
-
-	disconnect(): void;
+	disconnectWithCallback(callback: (p1: NSError) => void): void;
 
 	handleURL(url: NSURL): boolean;
 
 	hasPreviousSignIn(): boolean;
 
-	restorePreviousSignIn(): void;
+	restorePreviousSignInWithCallback(callback: (p1: GIDGoogleUser, p2: NSError) => void): void;
 
-	signIn(): void;
+	signInWithConfigurationPresentingViewControllerCallback(configuration: GIDConfiguration, presentingViewController: UIViewController, callback: (p1: GIDGoogleUser, p2: NSError) => void): void;
+
+	signInWithConfigurationPresentingViewControllerHintCallback(configuration: GIDConfiguration, presentingViewController: UIViewController, hint: string, callback: (p1: GIDGoogleUser, p2: NSError) => void): void;
 
 	signOut(): void;
 }
@@ -170,17 +193,6 @@ declare const enum GIDSignInButtonStyle {
 	kGIDSignInButtonStyleIconOnly = 2
 }
 
-interface GIDSignInDelegate extends NSObjectProtocol {
-
-	signInDidDisconnectWithUserWithError?(signIn: GIDSignIn, user: GIDGoogleUser, error: NSError): void;
-
-	signInDidSignInForUserWithError(signIn: GIDSignIn, user: GIDGoogleUser, error: NSError): void;
-}
-declare var GIDSignInDelegate: {
-
-	prototype: GIDSignInDelegate;
-};
-
 declare const enum GIDSignInErrorCode {
 
 	kGIDSignInErrorCodeUnknown = -1,
@@ -191,7 +203,15 @@ declare const enum GIDSignInErrorCode {
 
 	kGIDSignInErrorCodeCanceled = -5,
 
-	kGIDSignInErrorCodeEMM = -6
+	kGIDSignInErrorCodeEMM = -6,
+
+	kGIDSignInErrorCodeNoCurrentUser = -7,
+
+	kGIDSignInErrorCodeScopesAlreadyGranted = -8
 }
+
+declare var GoogleSignInVersionNumber: number;
+
+declare var GoogleSignInVersionString: interop.Reference<number>;
 
 declare var kGIDSignInErrorDomain: string;
