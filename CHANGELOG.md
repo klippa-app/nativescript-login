@@ -1,3 +1,15 @@
+## 3.1.0
+
+### Changed
+
+- Upgraded Android dependencies: 12.+ for Facebook SDK. Please update your AndroidManifest.xml according to the manifest, support for Chrome tabs has been added.
+- Upgraded iOS dependencies: 12.+ for Facebook SDK. Please update your Info.plist according to the manifest, `FacebookClientToken` has been added.
+
+### Added
+
+- `LimitedLogin` option has been added. See [Limited Login mode](https://developers.facebook.com/docs/facebook-login/limited-login/) for more information.
+- `ProfileDataFields` now loads all available profile data on iOS (without calling the API), even when `RequestProfileData` was `false`.
+
 ## 3.0.1
 
 ### Fixed
