@@ -62,6 +62,8 @@
     </array>
     <key>FacebookAppID</key>
     <string>577892569738501</string>
+    <key>FacebookClientToken</key>
+    <string>3bd30a24a095a540934f1acd8ea83354</string>
     <key>FacebookDisplayName</key>
     <string>NativeScript Login Demo ng App</string>
     <key>LSApplicationQueriesSchemes</key>

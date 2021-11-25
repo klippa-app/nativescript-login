@@ -2,7 +2,7 @@
 
 ### Changed
 
-- Upgraded Android dependencies: 12.+ for Facebook SDK. Please update your AndroidManifest.xml according to the manifest, support for Chrome tabs has been added.
+- Upgraded Android dependencies: 12.+ for Facebook SDK. Please update your AndroidManifest.xml and strings.xml according to the readme, support for Chrome tabs and client tokens has been added.
 - Upgraded iOS dependencies: 12.+ for Facebook SDK. Please update your Info.plist according to the manifest, `FacebookClientToken` has been added.
 
 ### Added
