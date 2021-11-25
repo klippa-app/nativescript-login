@@ -62,6 +62,8 @@
     </array>
     <key>FacebookAppID</key>
     <string>532268007713872</string>
+    <key>FacebookClientToken</key>
+    <string>e97a4302b1c0ac2453b3a8713a7febc6</string>
     <key>FacebookDisplayName</key>
     <string>NativeScript Login Demo Vue App</string>
     <key>LSApplicationQueriesSchemes</key>

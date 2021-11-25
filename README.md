@@ -41,7 +41,7 @@ ns plugin add @klippa/nativescript-login@^3.0.0
 #### Android integration
 
 * Follow the `1. Select an App or Create a New App` step in the [manual](https://developers.facebook.com/docs/facebook-login/android)
-* Edit/create your `App_Resources/Android/src/main/res/values/strings.xml` file and add the following, replace the `{{app-id}}` and `{{app-name}}` values:
+* Edit/create your `App_Resources/Android/src/main/res/values/strings.xml` file and add the following, replace the `{{app-id}}`, `{{app-name}}`, `{{client-token}}` values:
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
@@ -50,6 +50,7 @@ ns plugin add @klippa/nativescript-login@^3.0.0
     <string name="title_activity_kimera">{{app-name}}</string>
     <string name="facebook_app_id">{{app-id}}</string>
     <string name="fb_login_protocol_scheme">fb{{app-id}}</string>
+    <string name="facebook_client_token">{{client-token}}</string>
 </resources>
 ```
 

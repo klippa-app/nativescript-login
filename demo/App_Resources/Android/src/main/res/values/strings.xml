@@ -4,4 +4,5 @@
     <string name="title_activity_kimera">Klippa Login Demo</string>
     <string name="facebook_app_id">674699273282386</string>
     <string name="fb_login_protocol_scheme">fb6746992732823861</string>
+    <string name="facebook_client_token">38ecd6ff52766995de2227fb16007f13</string>
 </resources>
