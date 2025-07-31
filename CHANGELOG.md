@@ -1,3 +1,11 @@
+## 3.2.0
+
+### Changed
+
+- Upgraded Android dependencies: 18.+ for Facebook SDK.
+- Upgraded iOS dependencies: 18.+ for Facebook SDK.
+
+
 ## 3.1.0
 
 ### Changed
