@@ -1,3 +1,9 @@
+## 3.2.0
+
+### Changed
+
+- Upgraded Android dependencies: 18.+ for Facebook SDK. Please update your AndroidManifest.xml and strings.xml according to the readme.
+
 ## 3.1.0
 
 ### Changed
