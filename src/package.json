@@ -1,6 +1,6 @@
 {
 	"name": "@klippa/nativescript-login",
-	"version": "3.2.0",
+	"version": "3.1.0",
 	"description": "The best way to do social logins in NativeScript, a plugin with modern SDKs to allow authentication to various providers with access to all SDK features",
 	"main": "login",
 	"typings": "index.d.ts",
