@@ -1,3 +1,15 @@
+## 4.0.0
+
+- Upgraded Android dependencies: 18.+ for Facebook SDK, 21.4.0 for Google Sign In.
+- Upgraded iOS dependencies: 18.+ for Facebook SDK, 9.+ for Google Sign In.
+
+### Notes
+
+Some functionality has been disabled due to SDK changes.
+
+For Google ServerClientId, RequestProfile, HostedDomain and ExtraScopes won't be used. 
+Please use the values in Info.plist `GIDServerClientID`, `GIDHostedDomain` and `GIDOpenIDRealm`. `RequestProfile` and `ExtraScopes` currently don't have an alternative.
+
 ## 3.1.0
 
 ### Changed
