@@ -53,7 +53,7 @@
     "@nativescript/theme": "~3.1.0",
     "rxjs": "~7.8.2",
     "zone.js": "~0.15.1",
-    "@klippa/nativescript-login": "link:../src"
+    "@klippa/nativescript-login": "file:../src"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "~19.2.15",

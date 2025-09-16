@@ -289,22 +289,23 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
                 reject("Google on iOS requires either RequestProfile to be true or ExtraScopes to be set");
             }
 
+            // These options are now configured through Info.plist.
             if (googleSignInOptions.SignInType === GoogleSignInType.ServerAuthCode) {
-                //GIDSignIn.sharedInstance.serverClientID = googleSignInOptions.ServerClientId;
+                // GIDSignIn.sharedInstance.serverClientID = googleSignInOptions.ServerClientId;
             } else {
-                //GIDSignIn.sharedInstance.serverClientID = "";
+                // GIDSignIn.sharedInstance.serverClientID = "";
             }
 
             if (googleSignInOptions.RequestProfile) {
-                //GIDSignIn.sharedInstance.shouldFetchBasicProfile = googleSignInOptions.RequestProfile;
+                // GIDSignIn.sharedInstance.shouldFetchBasicProfile = googleSignInOptions.RequestProfile;
             } else {
-                //GIDSignIn.sharedInstance.shouldFetchBasicProfile = false;
+                // GIDSignIn.sharedInstance.shouldFetchBasicProfile = false;
             }
 
             if (googleSignInOptions.HostedDomain) {
-                //GIDSignIn.sharedInstance.hostedDomain = googleSignInOptions.HostedDomain;
+                // GIDSignIn.sharedInstance.hostedDomain = googleSignInOptions.HostedDomain;
             } else {
-                //GIDSignIn.sharedInstance.hostedDomain = null;
+                // GIDSignIn.sharedInstance.hostedDomain = null;
             }
 
             /*
@@ -536,111 +537,124 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
                     }
                 }
 
-                loginResult.Id = FBSDKProfile.currentProfile.userID;
-
-                loginResult.ProfileDataFields = {};
-                loginResult.ProfileDataFields["id"] = loginResult.Id;
-                if (FBSDKProfile.currentProfile.email) {
-                    loginResult.ProfileDataFields["email"] = FBSDKProfile.currentProfile.email;
-                }
-
-                if (FBSDKProfile.currentProfile.name) {
-                    loginResult.ProfileDataFields["name"] = FBSDKProfile.currentProfile.name;
-                }
-
-                if (FBSDKProfile.currentProfile.firstName) {
-                    loginResult.ProfileDataFields["first_name"] = FBSDKProfile.currentProfile.firstName;
-                }
-
-                if (FBSDKProfile.currentProfile.middleName) {
-                    loginResult.ProfileDataFields["middle_name"] = FBSDKProfile.currentProfile.middleName;
-                }
-
-                if (FBSDKProfile.currentProfile.lastName) {
-                    loginResult.ProfileDataFields["last_name"] = FBSDKProfile.currentProfile.lastName;
-                }
-
-                if (FBSDKProfile.currentProfile.gender) {
-                    loginResult.ProfileDataFields["gender"] = FBSDKProfile.currentProfile.gender;
-                }
-
-                if (FBSDKProfile.currentProfile.birthday) {
-                    loginResult.ProfileDataFields["birthday"] = FBSDKProfile.currentProfile.birthday.toISOString();
-                }
-
-                if (FBSDKProfile.currentProfile.imageURL) {
-                    loginResult.ProfileDataFields["image_url"] = FBSDKProfile.currentProfile.imageURL.absoluteString;
-                }
-
-                if (FBSDKProfile.currentProfile.linkURL) {
-                    loginResult.ProfileDataFields["link_url"] = FBSDKProfile.currentProfile.linkURL.absoluteString;
-                }
-
-                if (FBSDKProfile.currentProfile.ageRange) {
-                    loginResult.ProfileDataFields["age_range"] = FBSDKProfile.currentProfile.ageRange.description;
-                }
-
-                if (FBSDKProfile.currentProfile.hometown) {
-                    loginResult.ProfileDataFields["hometown"] = FBSDKProfile.currentProfile.hometown.name;
-                }
-
-                if (FBSDKProfile.currentProfile.location) {
-                    loginResult.ProfileDataFields["location"] = FBSDKProfile.currentProfile.location.name;
-                }
-
-                if (FBSDKProfile.currentProfile.friendIDs) {
-                    loginResult.ProfileDataFields["friend_ids"] = FBSDKProfile.currentProfile.friendIDs;
-                }
-
-                if (FBSDKProfile.currentProfile.refreshDate) {
-                    loginResult.ProfileDataFields["refresh_date"] = FBSDKProfile.currentProfile.refreshDate.toISOString();
-                }
-
-                if (!facebookLoginOptions.LimitedLogin) {
-                    loginResult.AccessToken = accessToken.tokenString;
-                    loginResult.Id = accessToken.userID;
-                }
-
-                if (!facebookLoginOptions.LimitedLogin && facebookLoginOptions.RequestProfileData) {
-                    let profileFields = ["id", "name", "first_name", "last_name", "picture.type(large)", "email"];
-                    if (facebookLoginOptions.ProfileDataFields && facebookLoginOptions.ProfileDataFields.length > 0) {
-                        profileFields = facebookLoginOptions.ProfileDataFields;
+                FBSDKProfile.loadCurrentProfileWithCompletion((currentProfile: FBSDKProfile, p2: NSError) => {
+                    if (p2) {
+                        loginResult.ResultType = FacebookLoginResultType.FAILED;
+                        loginResult.ErrorCode = 2;
+                        loginResult.ErrorMessage = "Error while fetching user profile";
+                        loginResult.ProfileDataErrorCode = p2.code;
+                        loginResult.ProfileDataErrorMessage = p2.localizedDescription;
+                        loginResult.ProfileDataUserErrorMessage = p2.localizedDescription;
+                        resolve(loginResult);
+                        return;
                     }
 
-                    FBSDKGraphRequest.alloc()
-                        .initWithGraphPathParametersTokenStringVersionHTTPMethod(
-                            "me",
-                            NSDictionary.dictionaryWithObjectForKey(
-                                profileFields.join(","),
-                                "fields"
-                            ),
-                            accessToken.tokenString,
-                            null,
-                            "GET"
-                        )
-                        .startWithCompletion((connection: FBSDKGraphRequestConnection, obj: NSDictionary<string, any>, error: NSError) => {
-                            if (error) {
-                                loginResult.ResultType = FacebookLoginResultType.FAILED;
-                                loginResult.ErrorCode = 2;
-                                loginResult.ErrorMessage = "Error while fetching user profile";
-                                loginResult.ProfileDataErrorCode = error.code;
-                                loginResult.ProfileDataErrorMessage = error.localizedDescription;
-                                loginResult.ProfileDataUserErrorMessage = error.localizedDescription;
-                                return;
-                            }
+                    loginResult.Id = currentProfile.userID;
 
-                            // Convert profile in JSON String, then do JSON.Parse() to have a Javascript object.
-                            // This makes sure all data is proper Javascript data to be used.
-                            const ProfileJSON = NSJSONSerialization.dataWithJSONObjectOptionsError(obj, null);
-                            const ProfileJSONString = NSString.alloc().initWithDataEncoding(ProfileJSON, NSUTF8StringEncoding).toString();
+                    loginResult.ProfileDataFields = {};
+                    loginResult.ProfileDataFields["id"] = loginResult.Id;
+                    if (currentProfile.email) {
+                        loginResult.ProfileDataFields["email"] = currentProfile.email;
+                    }
 
-                            loginResult.ProfileDataFields = JSON.parse(ProfileJSONString);
+                    if (currentProfile.name) {
+                        loginResult.ProfileDataFields["name"] = currentProfile.name;
+                    }
 
-                            resolve(loginResult);
-                        });
-                } else {
-                    resolve(loginResult);
-                }
+                    if (currentProfile.firstName) {
+                        loginResult.ProfileDataFields["first_name"] = currentProfile.firstName;
+                    }
+
+                    if (currentProfile.middleName) {
+                        loginResult.ProfileDataFields["middle_name"] = currentProfile.middleName;
+                    }
+
+                    if (currentProfile.lastName) {
+                        loginResult.ProfileDataFields["last_name"] = currentProfile.lastName;
+                    }
+
+                    if (currentProfile.gender) {
+                        loginResult.ProfileDataFields["gender"] = currentProfile.gender;
+                    }
+
+                    if (currentProfile.birthday) {
+                        loginResult.ProfileDataFields["birthday"] = currentProfile.birthday.toISOString();
+                    }
+
+                    if (currentProfile.imageURL) {
+                        loginResult.ProfileDataFields["image_url"] = currentProfile.imageURL.absoluteString;
+                    }
+
+                    if (currentProfile.linkURL) {
+                        loginResult.ProfileDataFields["link_url"] = currentProfile.linkURL.absoluteString;
+                    }
+
+                    if (currentProfile.ageRange) {
+                        loginResult.ProfileDataFields["age_range"] = currentProfile.ageRange.description;
+                    }
+
+                    if (currentProfile.hometown) {
+                        loginResult.ProfileDataFields["hometown"] = currentProfile.hometown.name;
+                    }
+
+                    if (currentProfile.location) {
+                        loginResult.ProfileDataFields["location"] = currentProfile.location.name;
+                    }
+
+                    if (currentProfile.friendIDs) {
+                        loginResult.ProfileDataFields["friend_ids"] = currentProfile.friendIDs;
+                    }
+
+                    if (currentProfile.refreshDate) {
+                        loginResult.ProfileDataFields["refresh_date"] = currentProfile.refreshDate.toISOString();
+                    }
+
+                    if (!facebookLoginOptions.LimitedLogin) {
+                        loginResult.AccessToken = accessToken.tokenString;
+                        loginResult.Id = accessToken.userID;
+                    }
+
+                    if (!facebookLoginOptions.LimitedLogin && facebookLoginOptions.RequestProfileData) {
+                        let profileFields = ["id", "name", "first_name", "last_name", "picture.type(large)", "email"];
+                        if (facebookLoginOptions.ProfileDataFields && facebookLoginOptions.ProfileDataFields.length > 0) {
+                            profileFields = facebookLoginOptions.ProfileDataFields;
+                        }
+
+                        FBSDKGraphRequest.alloc()
+                            .initWithGraphPathParametersTokenStringVersionHTTPMethod(
+                                "me",
+                                NSDictionary.dictionaryWithObjectForKey(
+                                    profileFields.join(","),
+                                    "fields"
+                                ),
+                                accessToken.tokenString,
+                                null,
+                                "GET"
+                            )
+                            .startWithCompletion((connection: FBSDKGraphRequestConnection, obj: NSDictionary<string, any>, error: NSError) => {
+                                if (error) {
+                                    loginResult.ResultType = FacebookLoginResultType.FAILED;
+                                    loginResult.ErrorCode = 2;
+                                    loginResult.ErrorMessage = "Error while fetching user profile";
+                                    loginResult.ProfileDataErrorCode = error.code;
+                                    loginResult.ProfileDataErrorMessage = error.localizedDescription;
+                                    loginResult.ProfileDataUserErrorMessage = error.localizedDescription;
+                                    return;
+                                }
+
+                                // Convert profile in JSON String, then do JSON.Parse() to have a Javascript object.
+                                // This makes sure all data is proper Javascript data to be used.
+                                const ProfileJSON = NSJSONSerialization.dataWithJSONObjectOptionsError(obj, null);
+                                const ProfileJSONString = NSString.alloc().initWithDataEncoding(ProfileJSON, NSUTF8StringEncoding).toString();
+
+                                loginResult.ProfileDataFields = JSON.parse(ProfileJSONString);
+
+                                resolve(loginResult);
+                            });
+                    } else {
+                        resolve(loginResult);
+                    }
+                });
             });
         } catch (e) {
             const result = new FacebookLoginResult();
@@ -661,7 +675,7 @@ export function startSignInWithApple(signInWithAppleOptions: SignInWithAppleOpti
     }
 
     return new Promise<any>((resolve, reject) => {
-        /*const authorizationAppleIDProvider = ASAuthorizationAppleIDProvider.new();
+        const authorizationAppleIDProvider = ASAuthorizationAppleIDProvider.new();
         const authorizationAppleIDRequest = authorizationAppleIDProvider.createRequest();
 
         if (signInWithAppleOptions && signInWithAppleOptions.User) {
@@ -689,7 +703,6 @@ export function startSignInWithApple(signInWithAppleOptions: SignInWithAppleOpti
         authorizationController = ASAuthorizationController.alloc().initWithAuthorizationRequests(nsArrayRequests);
         authorizationController.delegate = authorizationControllerDelegateImpl = ASAuthorizationControllerDelegateImpl.createWithPromise(resolve, reject);
         authorizationController.performRequests();
-         */
     });
 }
 
@@ -701,7 +714,6 @@ class ASAuthorizationControllerDelegateImpl extends NSObject /* implements ASAut
     private reject;
 
     public static new(): any /* ASAuthorizationControllerDelegateImpl */ {
-        /*
         try {
             ASAuthorizationControllerDelegateImpl.ObjCProtocols.push(ASAuthorizationControllerDelegate);
             return <ASAuthorizationControllerDelegateImpl>super.new();
@@ -709,7 +721,6 @@ class ASAuthorizationControllerDelegateImpl extends NSObject /* implements ASAut
             console.log("Apple Sign In not supported on this device - it requires iOS 13+. Tip: use 'isSignInWithAppleSupported' before calling 'signInWithApple'.");
             return null;
         }
-        */
     }
 
     public static createWithPromise(resolve, reject): ASAuthorizationControllerDelegateImpl {
@@ -809,10 +820,8 @@ export function getSignInWithAppleState(userID: string): Promise<SignInWithApple
     }
 
     return new Promise<any>((resolve, reject) => {
-        /* enum: ASAuthorizationAppleIDProviderCredentialState */
-        /*
         const authorizationAppleIDProvider = ASAuthorizationAppleIDProvider.new();
-        authorizationAppleIDProvider.getCredentialStateForUserIDCompletion(userID, (state: any, error: NSError) => {
+        authorizationAppleIDProvider.getCredentialStateForUserIDCompletion(userID, (state: any /* enum: ASAuthorizationAppleIDProviderCredentialState */, error: NSError) => {
             if (error) {
                 const result = new SignInWithAppleStateResult();
                 result.ResultType = SignInWithAppleResultType.ERROR;
@@ -838,6 +847,5 @@ export function getSignInWithAppleState(userID: string): Promise<SignInWithApple
 
             resolve(result);
         });
-         */
     });
 }
