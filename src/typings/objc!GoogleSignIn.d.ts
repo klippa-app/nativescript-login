@@ -1,35 +1,44 @@
 
-declare class GIDAuthentication extends NSObject implements NSSecureCoding {
+declare const enum GIDAppCheckErrorCode {
 
-	static alloc(): GIDAuthentication; // inherited from NSObject
+	kGIDAppCheckUnexpectedError = 1
+}
 
-	static new(): GIDAuthentication; // inherited from NSObject
+declare class GIDConfiguration extends NSObject implements NSCopying, NSSecureCoding {
 
-	readonly accessToken: string;
+	static alloc(): GIDConfiguration; // inherited from NSObject
 
-	readonly accessTokenExpirationDate: Date;
+	static new(): GIDConfiguration; // inherited from NSObject
 
 	readonly clientID: string;
 
-	readonly idToken: string;
+	readonly hostedDomain: string;
 
-	readonly idTokenExpirationDate: Date;
+	readonly openIDRealm: string;
 
-	readonly refreshToken: string;
+	readonly serverClientID: string;
 
 	static readonly supportsSecureCoding: boolean; // inherited from NSSecureCoding
 
+	constructor(o: { clientID: string; });
+
+	constructor(o: { clientID: string; serverClientID: string; });
+
+	constructor(o: { clientID: string; serverClientID: string; hostedDomain: string; openIDRealm: string; });
+
 	constructor(o: { coder: NSCoder; }); // inherited from NSCoding
+
+	copyWithZone(zone: interop.Pointer | interop.Reference<any>): any;
 
 	encodeWithCoder(coder: NSCoder): void;
 
-	fetcherAuthorizer(): GTMFetcherAuthorizationProtocol;
+	initWithClientID(clientID: string): this;
 
-	getTokensWithHandler(handler: (p1: GIDAuthentication, p2: NSError) => void): void;
+	initWithClientIDServerClientID(clientID: string, serverClientID: string): this;
+
+	initWithClientIDServerClientIDHostedDomainOpenIDRealm(clientID: string, serverClientID: string, hostedDomain: string, openIDRealm: string): this;
 
 	initWithCoder(coder: NSCoder): this;
-
-	refreshTokensWithHandler(handler: (p1: GIDAuthentication, p2: NSError) => void): void;
 }
 
 declare class GIDGoogleUser extends NSObject implements NSSecureCoding {
@@ -38,15 +47,19 @@ declare class GIDGoogleUser extends NSObject implements NSSecureCoding {
 
 	static new(): GIDGoogleUser; // inherited from NSObject
 
-	readonly authentication: GIDAuthentication;
+	readonly accessToken: GIDToken;
 
-	readonly grantedScopes: NSArray<any>;
+	readonly configuration: GIDConfiguration;
 
-	readonly hostedDomain: string;
+	readonly fetcherAuthorizer: GTMFetcherAuthorizationProtocol;
+
+	readonly grantedScopes: NSArray<string>;
+
+	readonly idToken: GIDToken;
 
 	readonly profile: GIDProfileData;
 
-	readonly serverAuthCode: string;
+	readonly refreshToken: GIDToken;
 
 	readonly userID: string;
 
@@ -54,9 +67,13 @@ declare class GIDGoogleUser extends NSObject implements NSSecureCoding {
 
 	constructor(o: { coder: NSCoder; }); // inherited from NSCoding
 
+	addScopesPresentingViewControllerCompletion(scopes: NSArray<string> | string[], presentingViewController: UIViewController, completion: (p1: GIDSignInResult, p2: NSError) => void): void;
+
 	encodeWithCoder(coder: NSCoder): void;
 
 	initWithCoder(coder: NSCoder): this;
+
+	refreshTokensIfNeededWithCompletion(completion: (p1: GIDGoogleUser, p2: NSError) => void): void;
 }
 
 declare class GIDProfileData extends NSObject implements NSCopying, NSSecureCoding {
@@ -94,57 +111,69 @@ declare class GIDSignIn extends NSObject {
 
 	static new(): GIDSignIn; // inherited from NSObject
 
-	static sharedInstance(): GIDSignIn;
-
-	clientID: string;
+	configuration: GIDConfiguration;
 
 	readonly currentUser: GIDGoogleUser;
 
-	delegate: GIDSignInDelegate;
+	static readonly sharedInstance: GIDSignIn;
 
-	hostedDomain: string;
+	/**
+	 * @since 14
+	 */
+	configureDebugProviderWithAPIKeyCompletion(APIKey: string, completion: (p1: NSError) => void): void;
 
-	language: string;
+	configureWithCompletion(completion: (p1: NSError) => void): void;
 
-	loginHint: string;
-
-	openIDRealm: string;
-
-	presentingViewController: UIViewController;
-
-	scopes: NSArray<any>;
-
-	serverClientID: string;
-
-	shouldFetchBasicProfile: boolean;
-
-	disconnect(): void;
+	disconnectWithCompletion(completion: (p1: NSError) => void): void;
 
 	handleURL(url: NSURL): boolean;
 
 	hasPreviousSignIn(): boolean;
 
-	restorePreviousSignIn(): void;
+	restorePreviousSignInWithCompletion(completion: (p1: GIDGoogleUser, p2: NSError) => void): void;
 
-	signIn(): void;
+	signInWithPresentingViewControllerCompletion(presentingViewController: UIViewController, completion: (p1: GIDSignInResult, p2: NSError) => void): void;
+
+	signInWithPresentingViewControllerHintAdditionalScopesCompletion(presentingViewController: UIViewController, hint: string, additionalScopes: NSArray<string> | string[], completion: (p1: GIDSignInResult, p2: NSError) => void): void;
+
+	signInWithPresentingViewControllerHintAdditionalScopesNonceCompletion(presentingViewController: UIViewController, hint: string, additionalScopes: NSArray<string> | string[], nonce: string, completion: (p1: GIDSignInResult, p2: NSError) => void): void;
+
+	signInWithPresentingViewControllerHintCompletion(presentingViewController: UIViewController, hint: string, completion: (p1: GIDSignInResult, p2: NSError) => void): void;
 
 	signOut(): void;
 }
 
-declare class GIDSignInButton extends UIControl {
+declare class GIDSignInButton extends UIControl implements NSSecureCoding {
 
 	static alloc(): GIDSignInButton; // inherited from NSObject
 
 	static appearance(): GIDSignInButton; // inherited from UIAppearance
 
+	/**
+	 * @since 8.0
+	 */
 	static appearanceForTraitCollection(trait: UITraitCollection): GIDSignInButton; // inherited from UIAppearance
 
+	/**
+	 * @since 8.0
+	 * @deprecated 9.0
+	 */
 	static appearanceForTraitCollectionWhenContainedIn(trait: UITraitCollection, ContainerClass: typeof NSObject): GIDSignInButton; // inherited from UIAppearance
 
+	/**
+	 * @since 9.0
+	 */
 	static appearanceForTraitCollectionWhenContainedInInstancesOfClasses(trait: UITraitCollection, containerTypes: NSArray<typeof NSObject> | typeof NSObject[]): GIDSignInButton; // inherited from UIAppearance
 
+	/**
+	 * @since 5.0
+	 * @deprecated 9.0
+	 */
 	static appearanceWhenContainedIn(ContainerClass: typeof NSObject): GIDSignInButton; // inherited from UIAppearance
 
+	/**
+	 * @since 9.0
+	 */
 	static appearanceWhenContainedInInstancesOfClasses(containerTypes: NSArray<typeof NSObject> | typeof NSObject[]): GIDSignInButton; // inherited from UIAppearance
 
 	static new(): GIDSignInButton; // inherited from NSObject
@@ -152,6 +181,14 @@ declare class GIDSignInButton extends UIControl {
 	colorScheme: GIDSignInButtonColorScheme;
 
 	style: GIDSignInButtonStyle;
+
+	static readonly supportsSecureCoding: boolean; // inherited from NSSecureCoding
+
+	constructor(o: { coder: NSCoder; }); // inherited from NSCoding
+
+	encodeWithCoder(coder: NSCoder): void;
+
+	initWithCoder(coder: NSCoder): this;
 }
 
 declare const enum GIDSignInButtonColorScheme {
@@ -170,17 +207,6 @@ declare const enum GIDSignInButtonStyle {
 	kGIDSignInButtonStyleIconOnly = 2
 }
 
-interface GIDSignInDelegate extends NSObjectProtocol {
-
-	signInDidDisconnectWithUserWithError?(signIn: GIDSignIn, user: GIDGoogleUser, error: NSError): void;
-
-	signInDidSignInForUserWithError(signIn: GIDSignIn, user: GIDGoogleUser, error: NSError): void;
-}
-declare var GIDSignInDelegate: {
-
-	prototype: GIDSignInDelegate;
-};
-
 declare const enum GIDSignInErrorCode {
 
 	kGIDSignInErrorCodeUnknown = -1,
@@ -191,7 +217,49 @@ declare const enum GIDSignInErrorCode {
 
 	kGIDSignInErrorCodeCanceled = -5,
 
-	kGIDSignInErrorCodeEMM = -6
+	kGIDSignInErrorCodeEMM = -6,
+
+	kGIDSignInErrorCodeScopesAlreadyGranted = -8,
+
+	kGIDSignInErrorCodeMismatchWithCurrentUser = -9
 }
+
+declare class GIDSignInResult extends NSObject {
+
+	static alloc(): GIDSignInResult; // inherited from NSObject
+
+	static new(): GIDSignInResult; // inherited from NSObject
+
+	readonly serverAuthCode: string;
+
+	readonly user: GIDGoogleUser;
+}
+
+declare class GIDToken extends NSObject implements NSSecureCoding {
+
+	static alloc(): GIDToken; // inherited from NSObject
+
+	static new(): GIDToken; // inherited from NSObject
+
+	readonly expirationDate: Date;
+
+	readonly tokenString: string;
+
+	static readonly supportsSecureCoding: boolean; // inherited from NSSecureCoding
+
+	constructor(o: { coder: NSCoder; }); // inherited from NSCoding
+
+	encodeWithCoder(coder: NSCoder): void;
+
+	initWithCoder(coder: NSCoder): this;
+
+	isEqualToToken(otherToken: GIDToken): boolean;
+}
+
+declare var GoogleSignInVersionNumber: number;
+
+declare var GoogleSignInVersionString: interop.Reference<number>;
+
+declare var kGIDAppCheckErrorDomain: string;
 
 declare var kGIDSignInErrorDomain: string;

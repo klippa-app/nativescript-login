@@ -43,7 +43,7 @@ let authorizationController: any /* ASAuthorizationController */;
 let authorizationControllerDelegateImpl: ASAuthorizationControllerDelegateImpl;
 
 interface GoogleEventData {
-    SignIn: GIDSignIn;
+    Result: GIDSignInResult;
     User: GIDGoogleUser;
     Error: NSError;
 }
@@ -53,31 +53,7 @@ class NativeScriptLoginUIApplicationDelegateImpl extends UIResponder implements 
     public static ObjCProtocols = [UIApplicationDelegate];
 }
 
-@NativeClass()
-class NativeScriptLoginGoogleDelegate extends NSObject implements GIDSignInDelegate {
-    public static ObjCProtocols = [GIDSignInDelegate];
-
-    signInDidDisconnectWithUserWithError(signIn: GIDSignIn, user: GIDGoogleUser, error: NSError) {
-        googleDidDisconnect.next({
-            SignIn: signIn,
-            User: user,
-            Error: error,
-        });
-    }
-
-    signInDidSignInForUserWithError(signIn: GIDSignIn, user: GIDGoogleUser, error: NSError) {
-        googleDidSignIn.next({
-            SignIn: signIn,
-            User: user,
-            Error: error,
-        });
-    }
-}
-
-const GoogleSignInDelegate = new NativeScriptLoginGoogleDelegate();
-
 export function wireInGoogleSignIn(iosClientID: string) {
-    let oldApplicationDidFinishLaunchingWithOptions;
     let oldApplicationOpenURLOptions;
 
     // Play nice with other plugins by not completely ignoring anything already added to the appdelegate
@@ -86,41 +62,17 @@ export function wireInGoogleSignIn(iosClientID: string) {
         Application.ios.delegate = NativeScriptLoginUIApplicationDelegateImpl;
     } else {
         // We already have a delegate, save the callbacks so we can call it later on.
-        if (Application.ios.delegate.prototype.applicationDidFinishLaunchingWithOptions) {
-            oldApplicationDidFinishLaunchingWithOptions = Application.ios.delegate.prototype.applicationDidFinishLaunchingWithOptions;
-        }
-
         if (Application.ios.delegate.prototype.applicationOpenURLOptions) {
             oldApplicationOpenURLOptions = Application.ios.delegate.prototype.applicationOpenURLOptions;
         }
     }
 
     // Override the applicationDidFinishLaunchingWithOptions in the delegate.
-    Application.ios.delegate.prototype.applicationDidFinishLaunchingWithOptions = (application: UIApplication, launchOptions: NSDictionary<string, any>) => {
-        let addedGIDSignInDelegate = false;
-
-        try {
-            GIDSignIn.sharedInstance().clientID = iosClientID;
-            GIDSignIn.sharedInstance().delegate = GoogleSignInDelegate;
-            addedGIDSignInDelegate = true;
-        } catch (error) {
-            console.log(error);
-        }
-
-        let oldCallback = true;
-        if (oldApplicationDidFinishLaunchingWithOptions) {
-            oldCallback = oldApplicationDidFinishLaunchingWithOptions(application, launchOptions);
-        }
-
-        return addedGIDSignInDelegate || oldCallback;
-    };
-
-    // Override the applicationDidFinishLaunchingWithOptions in the delegate.
     Application.ios.delegate.prototype.applicationOpenURLOptions = (app: UIApplication, url: NSURL, options: NSDictionary<string, any>) => {
         let handledGIDSignIn = false;
 
         try {
-            handledGIDSignIn = GIDSignIn.sharedInstance().handleURL(url);
+            handledGIDSignIn = GIDSignIn.sharedInstance.handleURL(url);
         } catch (error) {
             console.log(error);
         }
@@ -338,23 +290,24 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
             }
 
             if (googleSignInOptions.SignInType === GoogleSignInType.ServerAuthCode) {
-                GIDSignIn.sharedInstance().serverClientID = googleSignInOptions.ServerClientId;
+                //GIDSignIn.sharedInstance.serverClientID = googleSignInOptions.ServerClientId;
             } else {
-                GIDSignIn.sharedInstance().serverClientID = "";
+                //GIDSignIn.sharedInstance.serverClientID = "";
             }
 
             if (googleSignInOptions.RequestProfile) {
-                GIDSignIn.sharedInstance().shouldFetchBasicProfile = googleSignInOptions.RequestProfile;
+                //GIDSignIn.sharedInstance.shouldFetchBasicProfile = googleSignInOptions.RequestProfile;
             } else {
-                GIDSignIn.sharedInstance().shouldFetchBasicProfile = false;
+                //GIDSignIn.sharedInstance.shouldFetchBasicProfile = false;
             }
 
             if (googleSignInOptions.HostedDomain) {
-                GIDSignIn.sharedInstance().hostedDomain = googleSignInOptions.HostedDomain;
+                //GIDSignIn.sharedInstance.hostedDomain = googleSignInOptions.HostedDomain;
             } else {
-                GIDSignIn.sharedInstance().hostedDomain = null;
+                //GIDSignIn.sharedInstance.hostedDomain = null;
             }
 
+            /*
             const scopes = new NSMutableArray({
                 capacity: (googleSignInOptions.ExtraScopes && googleSignInOptions.ExtraScopes.length ? googleSignInOptions.ExtraScopes.length : 0),
             });
@@ -369,7 +322,8 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
                 }
             }
 
-            GIDSignIn.sharedInstance().scopes = scopes;
+            GIDSignIn.sharedInstance.scopes = scopes;
+             */
 
             googleDidDisconnectSubscription = googleDidDisconnect.subscribe((signInDetails) => {
                 cleanupSubscriptions();
@@ -392,7 +346,7 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
 
             // Does this trigger googleDidDisconnect?
             if (googleSignInOptions.ForceAccountSelection) {
-                GIDSignIn.sharedInstance().signOut();
+                GIDSignIn.sharedInstance.signOut();
             }
 
             googleDidSignInSubscription = googleDidSignIn.subscribe((signInDetails) => {
@@ -423,11 +377,11 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
                     result.Email = signInDetails.User.profile.email;
                 }
 
-                if (signInDetails.User.authentication) {
-                    result.IdToken = signInDetails.User.authentication.idToken;
+                if (signInDetails.User.idToken) {
+                    result.IdToken = signInDetails.User.idToken.tokenString;
                 }
 
-                result.ServerAuthCode = signInDetails.User.serverAuthCode;
+                result.ServerAuthCode = signInDetails.Result.serverAuthCode;
                 result.RequestedScopes = new Array<GoogleSignInScope>();
                 result.GrantedScopes = new Array<GoogleSignInScope>();
 
@@ -445,8 +399,13 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
                 resolve(result);
             });
 
-            GIDSignIn.sharedInstance().presentingViewController = Application.ios.rootController;
-            GIDSignIn.sharedInstance().signIn();
+            GIDSignIn.sharedInstance.signInWithPresentingViewControllerCompletion(Application.ios.rootController, (p1: GIDSignInResult, p2: NSError) =>  {
+                googleDidSignIn.next({
+                    Result: p1,
+                    User: p1.user,
+                    Error: p2,
+                });
+            });
         } catch (e) {
             const result = new GoogleSignInResult();
             result.ResultType = GoogleSignInResultType.FAILED;
@@ -672,7 +631,7 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
 
                             // Convert profile in JSON String, then do JSON.Parse() to have a Javascript object.
                             // This makes sure all data is proper Javascript data to be used.
-                            const ProfileJSON = NSJSONSerialization.dataWithJSONObjectOptionsError(obj, 0);
+                            const ProfileJSON = NSJSONSerialization.dataWithJSONObjectOptionsError(obj, null);
                             const ProfileJSONString = NSString.alloc().initWithDataEncoding(ProfileJSON, NSUTF8StringEncoding).toString();
 
                             loginResult.ProfileDataFields = JSON.parse(ProfileJSONString);
@@ -702,7 +661,7 @@ export function startSignInWithApple(signInWithAppleOptions: SignInWithAppleOpti
     }
 
     return new Promise<any>((resolve, reject) => {
-        const authorizationAppleIDProvider = ASAuthorizationAppleIDProvider.new();
+        /*const authorizationAppleIDProvider = ASAuthorizationAppleIDProvider.new();
         const authorizationAppleIDRequest = authorizationAppleIDProvider.createRequest();
 
         if (signInWithAppleOptions && signInWithAppleOptions.User) {
@@ -730,6 +689,7 @@ export function startSignInWithApple(signInWithAppleOptions: SignInWithAppleOpti
         authorizationController = ASAuthorizationController.alloc().initWithAuthorizationRequests(nsArrayRequests);
         authorizationController.delegate = authorizationControllerDelegateImpl = ASAuthorizationControllerDelegateImpl.createWithPromise(resolve, reject);
         authorizationController.performRequests();
+         */
     });
 }
 
@@ -740,7 +700,8 @@ class ASAuthorizationControllerDelegateImpl extends NSObject /* implements ASAut
     private resolve;
     private reject;
 
-    public static new(): ASAuthorizationControllerDelegateImpl {
+    public static new(): any /* ASAuthorizationControllerDelegateImpl */ {
+        /*
         try {
             ASAuthorizationControllerDelegateImpl.ObjCProtocols.push(ASAuthorizationControllerDelegate);
             return <ASAuthorizationControllerDelegateImpl>super.new();
@@ -748,6 +709,7 @@ class ASAuthorizationControllerDelegateImpl extends NSObject /* implements ASAut
             console.log("Apple Sign In not supported on this device - it requires iOS 13+. Tip: use 'isSignInWithAppleSupported' before calling 'signInWithApple'.");
             return null;
         }
+        */
     }
 
     public static createWithPromise(resolve, reject): ASAuthorizationControllerDelegateImpl {
@@ -793,7 +755,7 @@ class ASAuthorizationControllerDelegateImpl extends NSObject /* implements ASAut
         }
 
         if (credential.fullName) {
-            result.FullName = NSPersonNameComponentsFormatter.localizedStringFromPersonNameComponentsStyleOptions(credential.fullName, NSPersonNameComponentsFormatterStyle.Default, 0);
+            result.FullName = NSPersonNameComponentsFormatter.localizedStringFromPersonNameComponentsStyleOptions(credential.fullName, NSPersonNameComponentsFormatterStyle.Default, null);
             result.NameComponents = setAppleNameComponents(credential.fullName);
             result.NameComponents.PhoneticRepresentation = setAppleNameComponents(credential.fullName.phoneticRepresentation);
         } else {
@@ -847,8 +809,10 @@ export function getSignInWithAppleState(userID: string): Promise<SignInWithApple
     }
 
     return new Promise<any>((resolve, reject) => {
+        /* enum: ASAuthorizationAppleIDProviderCredentialState */
+        /*
         const authorizationAppleIDProvider = ASAuthorizationAppleIDProvider.new();
-        authorizationAppleIDProvider.getCredentialStateForUserIDCompletion(userID, (state: any /* enum: ASAuthorizationAppleIDProviderCredentialState */, error: NSError) => {
+        authorizationAppleIDProvider.getCredentialStateForUserIDCompletion(userID, (state: any, error: NSError) => {
             if (error) {
                 const result = new SignInWithAppleStateResult();
                 result.ResultType = SignInWithAppleResultType.ERROR;
@@ -874,5 +838,6 @@ export function getSignInWithAppleState(userID: string): Promise<SignInWithApple
 
             resolve(result);
         });
+         */
     });
 }

@@ -11,10 +11,12 @@ import {
   signInWithAppleAvailable
 } from "@klippa/nativescript-login";
 import { Dialogs } from "@nativescript/core";
+import {ActionBarComponent} from "@nativescript/angular";
 
 @Component({
   selector: "Home",
-  templateUrl: "./home.component.html"
+  templateUrl: "./home.component.html",
+  standalone: false,
 })
 export class HomeComponent implements OnInit {
 
