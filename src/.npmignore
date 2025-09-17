@@ -1,6 +1,9 @@
 *.map
 *.ts
-!*.d.ts
+!index.d.ts
+!login.android.d.ts
+!login.common.d.ts
+!login.ios.d.ts
 tsconfig.json
 scripts/*
 platforms/android/*
