@@ -43,9 +43,9 @@ let authorizationController: any /* ASAuthorizationController */;
 let authorizationControllerDelegateImpl: ASAuthorizationControllerDelegateImpl;
 
 interface GoogleEventData {
-    Result: GIDSignInResult;
-    User: GIDGoogleUser;
-    Error: NSError;
+    Result?: GIDSignInResult;
+    User?: GIDGoogleUser;
+    Error?: NSError;
 }
 
 @NativeClass()
@@ -401,11 +401,16 @@ export function startGoogleSignIn(googleSignInOptions: GoogleSignInOptions): Pro
             });
 
             GIDSignIn.sharedInstance.signInWithPresentingViewControllerCompletion(Application.ios.rootController, (p1: GIDSignInResult, p2: NSError) =>  {
-                googleDidSignIn.next({
-                    Result: p1,
-                    User: p1.user,
-                    Error: p2,
-                });
+                if (p2) {
+                    googleDidSignIn.next({
+                        Error: p2,
+                    });
+                } else {
+                    googleDidSignIn.next({
+                        Result: p1,
+                        User: p1.user,
+                    });
+                }
             });
         } catch (e) {
             const result = new GoogleSignInResult();
@@ -506,12 +511,22 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
 
                 // Access token is not available in limited login mode.
                 let accessToken: FBSDKAccessToken;
+                let authenticationToken: FBSDKAuthenticationToken;
                 if (!facebookLoginOptions.LimitedLogin) {
                     accessToken = result.token;
                     if (!accessToken) {
                         loginResult.ResultType = FacebookLoginResultType.FAILED;
                         loginResult.ErrorCode = 0;
                         loginResult.ErrorMessage = "No access token returned";
+                        resolve(loginResult);
+                        return;
+                    }
+                } else {
+                    authenticationToken = result.authenticationToken;
+                    if (!authenticationToken) {
+                        loginResult.ResultType = FacebookLoginResultType.FAILED;
+                        loginResult.ErrorCode = 0;
+                        loginResult.ErrorMessage = "No authentication token returned";
                         resolve(loginResult);
                         return;
                     }
@@ -612,6 +627,8 @@ export function startFacebookLogin(facebookLoginOptions: FacebookLoginOptions): 
                     if (!facebookLoginOptions.LimitedLogin) {
                         loginResult.AccessToken = accessToken.tokenString;
                         loginResult.Id = accessToken.userID;
+                    } else {
+                        loginResult.AccessToken = authenticationToken.tokenString;
                     }
 
                     if (!facebookLoginOptions.LimitedLogin && facebookLoginOptions.RequestProfileData) {

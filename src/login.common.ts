@@ -277,7 +277,7 @@ export class FacebookLoginResult {
 
     // Success fields.
     Id: string;
-    AccessToken: string;
+    AccessToken: string; // Note: this is a JWT OIDC Token when using LimitedLogin.
     ProfileDataFields: {[key: string]: any};
 }
 
